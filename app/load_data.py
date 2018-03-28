@@ -1,3 +1,4 @@
+import os
 import re
 from collections import Counter
 
@@ -39,8 +40,7 @@ def parse_reviews(file_type='train',
     assert file_type in ['train', 'test']
 
     file = TRAIN_FILE if file_type == 'train' else TEST_FILE
-
-    path = "{}{}".format(DATA_DIR, file)
+    path = os.path.join(DATA_DIR, file)
 
     if load_data:
         try:
