@@ -195,7 +195,7 @@ class SequentialMLP:
             self.nn_model.add(BatchNormalization())
             self.nn_model.add(Activation(activation='softmax'))
 
-        elif self.n_y == 2:
+        elif self.n_y == 1:
             self.nn_model.add(Dense(1))
             self.nn_model.add(BatchNormalization())
             self.nn_model.add(Activation(activation='sigmoid'))
@@ -289,7 +289,7 @@ if __name__ == "__main__":
     y_test = meta_dict['y_test']
     y_train_enc = meta_dict['y_train_enc']
     y_test_enc = meta_dict['y_test_enc']
-
+    #
     # y_train_one_hot = keras.utils.to_categorical(y_train_enc, num_classes=2)
     # y_test_one_hot = keras.utils.to_categorical(y_test_enc, num_classes=2)
 
@@ -297,15 +297,17 @@ if __name__ == "__main__":
                         Y_train=y_train_enc,
                         X_test=X_test,
                         Y_test=y_test_enc,
-                        deep_layers=[50],
-                        learning_rate=0.0001,
-                        num_epochs=1500,
-                        minibatch_size=32,
+                        deep_layers=[20, 20, 20],
+                        learning_rate=0.001,
+                        num_epochs=2000,
+                        minibatch_size=16,
                         deep_activation='relu',
                         activation='sigmoid',
                         optimizer='adam',
-                        loss='categorical_crossentropy',
+                        loss='binary_crossentropy',
                         kernel_regularization_params=('l2', 0.01),
-                        dropout=0.2)
+                        dropout=0.4)
 
-    obj.fit(create_plots=True)
+    test_score = obj.fit(create_plots=True)
+
+    print(test_score)
