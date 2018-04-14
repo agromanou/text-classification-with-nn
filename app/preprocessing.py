@@ -21,6 +21,13 @@ def prepare_user_plus_vector_based_features():
     y_train = train_data['polarity']
     y_test = test_data['polarity']
 
+    len_train = len(X_train)
+    len_test = len(X_test)
+    mapper = {'positive': 1, 'negative': 0}
+
+    y_train_enc = y_train.map(mapper).values.reshape(len_train, 1)
+    y_test_enc = y_test.map(mapper).values.reshape(len_test, 1)
+
     # Lemmatizing all X's.
     X_train_lemmatized = pd.DataFrame(LemmaExtractor(col_name='text').fit_transform(X_train))
     X_test_lemmatized = pd.DataFrame(LemmaExtractor(col_name='text').fit_transform(X_test))
@@ -59,7 +66,17 @@ def prepare_user_plus_vector_based_features():
     X_train_features = final_pipeline_without_clf.fit_transform(X_train_lemmatized)
     X_test_features = final_pipeline_without_clf.transform(X_test_lemmatized)
 
-    return {'X_train': X_train_features,
-            'X_test': X_test_features,
-            'y_train': y_train,
-            'y_test': y_test}
+    return {
+        'X_train': X_train_features,
+        'X_test': X_test_features,
+        'y_train': y_train,
+        'y_test': y_test,
+        'y_train_enc': y_train_enc,
+        'y_test_enc': y_test_enc
+    }
+
+
+if __name__ == "__main__":
+    datasets = prepare_user_plus_vector_based_features()
+
+    print(datasets.keys())
