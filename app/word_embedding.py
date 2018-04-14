@@ -108,16 +108,18 @@ class FastTextEmbedding:
         self.model_path = os.path.join(MODELS_DIR, '{}_{}'.format(self.embedding_type, model_name))
         self.model = None
 
-    def train_model(self, file_input='train.txt'):
+    def train_model(self, file_input='train_text.txt'):
         """
 
         :param file_input:
         :return:
         """
         input_path = os.path.join(DATA_DIR, file_input)
+
         if self.embedding_type == 'skipgram':
             # Skipgram model
             model = fasttext.skipgram(input_path, self.model_path)
+
         elif self.embedding_type == 'cbow':
             # CBOW model
             model = fasttext.cbow(input_path, self.model_path)
@@ -125,7 +127,7 @@ class FastTextEmbedding:
         else:
             raise NotImplementedError()
 
-        # print(model.words)  # list of words in dictionary
+        print(model.words)  # list of words in dictionary
 
         self.model = model
 
@@ -142,9 +144,10 @@ class FastTextEmbedding:
 
 
 if __name__ == '__main__':
-    w_e = GloveWordEmbedding.get_word_embeddings_mean(dimension=50, save_data=True, load_data=False)
+    fte_obj = FastTextEmbedding(embedding_type='skipgram')
 
-    print('the: {}'.format(w_e['the']))
-    print('a: {}'.format(w_e['a']))
-    print('egg: {}'.format(w_e['egg']))
-    print('the: {}'.format(np.mean(w_e['the'])))
+    # trained_model = fte_obj.train_model(file_input='train_text.txt')
+    loaded_skipgram_emb_model = fte_obj.load_model()
+    # print(trained_model.words)
+
+    print(loaded_skipgram_emb_model['Amazing'])

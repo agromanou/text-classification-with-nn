@@ -97,7 +97,7 @@ def reviews_to_txt(data_type='train'):
 
     # setting the outfile path that will give the training examples as text.
 
-    with open(outfile_path, 'w') as out:
+    with open(outfile_path, 'w', encoding='utf8') as out:
         for row in reviews_df['text']:
             out.write(row + '\n')
 
