@@ -76,7 +76,60 @@ def prepare_user_plus_vector_based_features():
     }
 
 
-if __name__ == "__main__":
-    datasets = prepare_user_plus_vector_based_features()
+def prepare_embedding_based_features(emb_dim=100, emb_type='tfidf'):
+    """
 
-    print(datasets.keys())
+    :param emb_dim:
+    :param emb_type:
+    :return:
+    """
+
+    assert emb_type in ['tfidf', 'tf']
+
+    # loading data (train and test)
+    train_data = parse_reviews(load_data=False, file_type='train')
+    test_data = parse_reviews(load_data=False, file_type='test')
+
+    X_train = train_data.drop(['polarity'], axis=1)
+    X_test = test_data.drop(['polarity'], axis=1)
+
+    y_train = train_data['polarity']
+    y_test = test_data['polarity']
+
+    len_train = len(X_train)
+    len_test = len(X_test)
+    mapper = {'positive': 1, 'negative': 0}
+
+    y_train_enc = y_train.map(mapper).values.reshape(len_train, 1)
+    y_test_enc = y_test.map(mapper).values.reshape(len_test, 1)
+
+    we_obj = GloveWordEmbedding()
+
+    pre_loaded_we = {emb_dim: we_obj.get_word_embeddings(dimension=emb_dim)}
+
+    print(X_test)
+
+    final_pipeline = Pipeline([
+        ('embedding_feat', SentenceEmbeddingExtractor(col_name='text',
+                                                      word_embeddings_dict=pre_loaded_we,
+                                                      embedding_type=emb_type,
+                                                      embedding_dimensions=emb_dim)),
+        ('scaling', StandardScaler())])
+
+    X_train_features = final_pipeline.fit_transform(X_train)
+    X_test_features = final_pipeline.transform(X_test)
+
+    return {
+        'X_train': X_train_features,
+        'X_test': X_test_features,
+        'y_train': y_train,
+        'y_test': y_test,
+        'y_train_enc': y_train_enc,
+        'y_test_enc': y_test_enc}
+
+
+if __name__ == "__main__":
+    meta = prepare_embedding_based_features(emb_dim=50, emb_type='tf')
+    print(meta.keys())
+
+    print(meta['X_train'].shape)

@@ -297,15 +297,17 @@ if __name__ == "__main__":
                         Y_train=y_train_enc,
                         X_test=X_test,
                         Y_test=y_test_enc,
-                        deep_layers=[50, 50, 50],
+                        deep_layers=[20, 20, 20],
                         learning_rate=0.001,
                         num_epochs=2000,
-                        minibatch_size=32,
+                        minibatch_size=16,
                         deep_activation='relu',
                         activation='sigmoid',
                         optimizer='adam',
                         loss='binary_crossentropy',
-                        kernel_regularization_params=('l2', 0.1),
-                        dropout=0.2)
+                        kernel_regularization_params=('l2', 0.01),
+                        dropout=0.4)
 
-    obj.fit(create_plots=True)
+    test_score = obj.fit(create_plots=True)
+
+    print(test_score)

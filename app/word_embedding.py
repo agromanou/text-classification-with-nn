@@ -3,6 +3,11 @@ import os
 import fasttext
 import numpy as np
 import pandas as pd
+from IPython.display import Image
+from keras.layers import Activation, Merge, Reshape
+from keras.layers.embeddings import Embedding
+from keras.models import Sequential
+from keras.preprocessing.text import Tokenizer
 from tqdm import tqdm
 
 from app import DATA_DIR, MODELS_DIR
@@ -153,6 +158,37 @@ class FastTextEmbedding:
 
         return self.model
 
+
+def create_FastTextEmbedding(data):
+    """
+
+    :return:
+    """
+
+    vocab_size = 4000
+    tokenizer = Tokenizer(nb_words=vocab_size,
+                          filters=base_filter())
+    tokenizer.fit_on_texts(data['text'])
+    vocab_size = len(tokenizer.word_index) + 1
+    word_index = tokenizer.word_index
+    reverse_word_index = {v: k for k, v in word_index.items()}
+
+    embedding_dim = 100
+    target = Sequential()
+    target.add(Embedding(vocab_size, embedding_dim, input_length=1))
+
+    context = Sequential()
+    context.add(Embedding(vocab_size, embedding_dim, input_length=1))
+
+    # merge the pivot and context models
+    model = Sequential()
+    model.add(Merge([target_word, context_word], mode='dot'))
+    model.add(Reshape((1,), input_shape=(1, 1)))
+    # model.add(Flatten())
+
+    model.add(Activation('sigmoid'))
+    model.compile(optimizer='adam', loss='binary_crossentropy')
+    Image(model_to_dot(model, show_shapes=True).create(prog='dot', format='png'))
 
 if __name__ == '__main__':
     fte_obj = FastTextEmbedding(embedding_type='skipgram')

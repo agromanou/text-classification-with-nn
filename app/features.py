@@ -523,6 +523,7 @@ class SentenceEmbeddingExtractor(BaseEstimator, TransformerMixin):
             return self.calculate_updated_sentence_embeddings(X=X)
 
         print('Calculating word embeddings of sentences for "{}" Column'.format(self.col_name))
+        print(X[self.col_name].shape)
         return self.calculate_updated_sentence_embeddings(X=X[self.col_name])
 
     def fit(self, X, y=None):
