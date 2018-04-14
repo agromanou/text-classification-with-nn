@@ -1,3 +1,4 @@
+spacy
 matplotlib
 numpy
 keras

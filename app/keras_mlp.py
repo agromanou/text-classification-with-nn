@@ -9,6 +9,7 @@ from keras.utils import plot_model as keras_plot_model
 from matplotlib import pyplot as plt
 
 from app import MODELS_DIR
+from app.preprocessing import prepare_user_plus_vector_based_features
 
 plt.style.use('ggplot')
 
@@ -272,3 +273,14 @@ class SequentialMLP:
         classes = self.nn_model.predict(X, batch_size=1)
 
         return np.argmax(classes)
+
+
+if __name__ == "__main__":
+    meta_dict = prepare_user_plus_vector_based_features()
+
+    print(meta_dict.keys())
+
+    X_train = meta_dict['X_train']
+    X_test = meta_dict['X_test']
+    y_train = meta_dict['y_train']
+    y_test = meta_dict['y_test']

@@ -142,12 +142,20 @@ class FastTextEmbedding:
         self.model = fasttext.load_model(filepath)
         return self.model
 
+    def load_pretrained(self, path='wiki-news-300d-1M.vec'):
+        """
+        :param path:
+        :return:
+        """
+
+        filepath = os.path.join(MODELS_DIR, path)
+        self.model = fasttext.load_model(filepath)
+
+        return self.model
+
 
 if __name__ == '__main__':
     fte_obj = FastTextEmbedding(embedding_type='skipgram')
 
-    # trained_model = fte_obj.train_model(file_input='train_text.txt')
-    loaded_skipgram_emb_model = fte_obj.load_model()
-    # print(trained_model.words)
-
-    print(loaded_skipgram_emb_model['Amazing'])
+    trained_model = fte_obj.load_pretrained()
+    print(len(trained_model.trained_model))
