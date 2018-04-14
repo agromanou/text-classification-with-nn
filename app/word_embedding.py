@@ -93,7 +93,8 @@ class GloveWordEmbedding:
 
 
 class FastTextEmbedding:
-    def __init__(self, embedding_type='skipgram',
+    def __init__(self,
+                 embedding_type='skipgram',
                  model_name='model'):
         """
 
