@@ -1,3 +1,5 @@
+import os
+
 import keras
 import numpy as np
 from keras import regularizers
@@ -252,11 +254,12 @@ class SequentialMLP:
                                             verbose=2)
 
         if self.outfile:
-            self.nn_model.save(MODELS_DIR + self.outfile + '.h5')
+            model_path = os.path.join(MODELS_DIR, self.outfile + '.h5')
+            self.nn_model.save(model_path)
 
         if self.outfile and self.plot_model:
-            path = MODELS_DIR + self.outfile + '.png'
-            keras_plot_model(self.nn_model, to_file=path, show_shapes=True, show_layer_names=True)
+            model_img_path = MODELS_DIR + self.outfile + '.png'
+            keras_plot_model(self.nn_model, to_file=model_img_path, show_shapes=True, show_layer_names=True)
 
         if create_plots:
             plot_model_metadata(history)
@@ -284,3 +287,25 @@ if __name__ == "__main__":
     X_test = meta_dict['X_test']
     y_train = meta_dict['y_train']
     y_test = meta_dict['y_test']
+    y_train_enc = meta_dict['y_train_enc']
+    y_test_enc = meta_dict['y_test_enc']
+
+    # y_train_one_hot = keras.utils.to_categorical(y_train_enc, num_classes=2)
+    # y_test_one_hot = keras.utils.to_categorical(y_test_enc, num_classes=2)
+
+    obj = SequentialMLP(X_train=X_train,
+                        Y_train=y_train_enc,
+                        X_test=X_test,
+                        Y_test=y_test_enc,
+                        deep_layers=[50],
+                        learning_rate=0.0001,
+                        num_epochs=1500,
+                        minibatch_size=32,
+                        deep_activation='relu',
+                        activation='sigmoid',
+                        optimizer='adam',
+                        loss='categorical_crossentropy',
+                        kernel_regularization_params=('l2', 0.01),
+                        dropout=0.2)
+
+    obj.fit(create_plots=True)
