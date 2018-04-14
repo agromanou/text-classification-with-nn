@@ -82,6 +82,15 @@ def parse_reviews(file_type='train',
     return extracted_data
 
 
+def write_data_to_txt(kind='train'):
+    """
+
+    :param kind:
+    :return:
+    """
+    pass
+
+
 if __name__ == "__main__":
     train_data = parse_reviews(load_data=False, save_data=False, file_type='train')
     print(train_data.head())
