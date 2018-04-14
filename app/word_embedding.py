@@ -1,8 +1,11 @@
-import pandas as pd
-import fasttext
-from app import DATA_DIR, MODELS_DIR
-from tqdm import tqdm
 import os
+
+import fasttext
+import numpy as np
+import pandas as pd
+from tqdm import tqdm
+
+from app import DATA_DIR, MODELS_DIR
 
 
 class GloveWordEmbedding:
@@ -20,7 +23,7 @@ class GloveWordEmbedding:
         t = 'glove.6B.{}d.txt'.format(dimension)
 
         print('Loading Word Embeddings file: {}'.format(t))
-        infile = "{}{}".format(DATA_DIR, t)
+        infile = os.path.join(DATA_DIR, t)
 
         with open(infile, 'rb') as in_file:
             text = in_file.read().decode("utf-8")
@@ -63,7 +66,7 @@ class GloveWordEmbedding:
         t = 'glove.6B.{}d.txt'.format(dimension)
 
         print('Loading Word Embeddings file: {}'.format(t))
-        infile = "{}{}".format(DATA_DIR, t)
+        infile = os.path.join(DATA_DIR, t)
 
         with open(infile, 'rb') as in_file:
             text = in_file.read().decode("utf-8")
@@ -90,13 +93,15 @@ class GloveWordEmbedding:
 
 
 class FastTextEmbedding:
-    def __init__(self, embedding_type='skipgram', model_name='model'):
+    def __init__(self, embedding_type='skipgram',
+                 model_name='model'):
         """
 
         :param embedding_type:
         :param model_name:
         """
         assert embedding_type in ['skipgram', 'cbow']
+
         self.embedding_type = embedding_type
         self.model_name = model_name
         self.model_path = os.path.join(MODELS_DIR, '{}_{}'.format(self.embedding_type, model_name))
@@ -136,12 +141,9 @@ class FastTextEmbedding:
 
 
 if __name__ == '__main__':
-    w_e = GloveWordEmbedding.get_word_embeddings_mean(dimension=50, save_data=True, load_data=True)
+    w_e = GloveWordEmbedding.get_word_embeddings_mean(dimension=50, save_data=True, load_data=False)
 
     print('the: {}'.format(w_e['the']))
     print('a: {}'.format(w_e['a']))
     print('egg: {}'.format(w_e['egg']))
-
-    import numpy as np
-
     print('the: {}'.format(np.mean(w_e['the'])))
