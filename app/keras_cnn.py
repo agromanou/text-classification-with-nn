@@ -312,8 +312,9 @@ def multiple_filter_cnn(max_sequence_length=1000,
 
 
 if __name__ == "__main__":
-    params = {'max_sequence_length': [1000, 500],
-              'embedding_dim': [50, 100, 200],
+
+    params = {'max_sequence_length': [1000],
+              'embedding_dim': [200],
               'optimizer': ['rmsprop', 'adam', 'sgd'],
               'loss': ['categorical_crossentropy'],
               'deep_activation': ['relu', 'tanh'],
@@ -327,14 +328,15 @@ if __name__ == "__main__":
                       params['activation'])
 
     results = dict()
-    with open('results_cnn.txt', 'a') as f:
+    with open('results_cnn2.txt', 'a') as f:
         for i in comb:
-            history = multiple_filter_cnn(max_sequence_length=i[0],
-                                          embedding_dim=i[1],
-                                          loss=i[3],
-                                          optimizer=i[2],
-                                          deep_activation=i[4],
-                                          activation=i[5])
+            history = stacked_cnn(max_sequence_length=i[0],
+                                  embedding_dim=i[1],
+                                  loss=i[3],
+                                  optimizer=i[2],
+                                  deep_activation=i[4],
+                                  activation=i[5],
+                                  nb_epoch=30)
 
             results[str(i)] = (history.history['acc'], history.history['val_acc'])
             print('-' * 30, 'END OF RUN', '-' * 30)
