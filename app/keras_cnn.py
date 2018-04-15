@@ -10,6 +10,9 @@ from app.load_data import parse_reviews
 from app.word_embedding import GloveWordEmbedding
 
 import matplotlib.pyplot as plt
+import itertools as it
+from pprint import pprint
+
 
 def prepare_data_for_conv_networks(max_sequence_length=1000,
                                    max_nb_words=20000,
@@ -23,6 +26,8 @@ def prepare_data_for_conv_networks(max_sequence_length=1000,
     :param validation_split:
     :return:
     """
+    np.random.seed(200)
+
     training_csv_df = parse_reviews(file_type='train', load_data=False, save_data=False)
     test_csv_df = parse_reviews(file_type='test', load_data=False, save_data=False)
 
@@ -103,7 +108,9 @@ def simpleCNN(max_sequence_length=1000,
               loss='categorical_crossentropy',
               optimizer='rmsprop',
               batch_size=64,
-              nb_epoch=10):
+              nb_epoch=10,
+              deep_activation='relu',
+              activation='sigmoid'):
     """
 
     :param max_sequence_length:
@@ -141,15 +148,15 @@ def simpleCNN(max_sequence_length=1000,
     sequence_input = Input(shape=(max_sequence_length,), dtype='int32')
 
     embedded_sequences = embedding_layer(sequence_input)
-    l_cov1 = Conv1D(128, 5, activation='relu')(embedded_sequences)
+    l_cov1 = Conv1D(128, 5, activation=deep_activation)(embedded_sequences)
     l_pool1 = MaxPooling1D(5)(l_cov1)
-    l_cov2 = Conv1D(128, 5, activation='relu')(l_pool1)
+    l_cov2 = Conv1D(128, 5, activation=deep_activation)(l_pool1)
     l_pool2 = MaxPooling1D(5)(l_cov2)
     # l_cov3 = Conv1D(128, 5, activation='relu')(l_pool2)
     # l_pool3 = MaxPooling1D(35)(l_cov3)  # global max pooling
     l_flat = Flatten()(l_pool2)
-    l_dense = Dense(128, activation='relu')(l_flat)
-    preds = Dense(2, activation='softmax')(l_dense)
+    l_dense = Dense(128, activation=deep_activation)(l_flat)
+    preds = Dense(2, activation=activation)(l_dense)
 
     model = Model(sequence_input, preds)
     model.compile(loss=loss, optimizer=optimizer, metrics=['acc'])
@@ -169,7 +176,27 @@ def simpleCNN(max_sequence_length=1000,
     #                             batch_size=batch_size,
     #                             verbose=2)
 
-    # return test_score
+    # #  "Accuracy"
+    # # plt.subplot(1, 2, 1)
+    # plt.plot(history.history['acc'])
+    # plt.plot(history.history['val_acc'])
+    # plt.title('Model Accuracy')
+    # plt.ylabel('accuracy')
+    # plt.xlabel('epoch')
+    # plt.ylim(ymax=1)
+    # plt.legend(['train', 'validation'], loc='upper left')
+    # plt.show()
+    #
+    # # "Loss"
+    # # plt.subplot(1, 2, 2)
+    # plt.plot(history.history['loss'])
+    # plt.plot(history.history['val_loss'])
+    # plt.title('Model Loss')
+    # plt.ylabel('loss')
+    # plt.xlabel('epoch')
+    # plt.legend(['train', 'validation'], loc='upper left')
+
+    return history
 
 
 def betterCNN(max_sequence_length=1000,
@@ -281,4 +308,36 @@ def betterCNN(max_sequence_length=1000,
 
 
 if __name__ == "__main__":
-    simpleCNN()
+    params = {'max_sequence_length': [1000, 500],
+              'embedding_dim': [50, 100, 200],
+              'optimizer': ['rmsprop', 'adam', 'sgd'],
+              'loss': ['categorical_crossentropy'],
+              'deep_activation': ['relu', 'tanh'],
+              'activation': ['softmax']}
+
+    comb = it.product(params['max_sequence_length'],
+                      params['embedding_dim'],
+                      params['optimizer'],
+                      params['loss'],
+                      params['deep_activation'],
+                      params['activation'])
+
+    results = dict()
+    with open('results_cnn.txt', 'a') as f:
+        for i in comb:
+            history = simpleCNN(max_sequence_length=i[0],
+                                embedding_dim=i[1],
+                                loss=i[3],
+                                optimizer=i[2],
+                                deep_activation=i[4],
+                                activation=i[5])
+
+            results[str(i)] = (history.history['acc'], history.history['val_acc'])
+            print('-' * 30, 'END OF RUN', '-' * 30)
+            f.write('{}, {}, {}\n'.format(str(i),
+                                          'Accuracty: ' + str(history.history['acc']),
+                                          'Accuracty Val : ' + str(history.history['val_acc'])))
+
+    pprint(results)
+
+

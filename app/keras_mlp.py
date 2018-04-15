@@ -9,6 +9,8 @@ from keras.models import Sequential
 from keras.optimizers import SGD, Adagrad, RMSprop, Adadelta
 from keras.utils import plot_model as keras_plot_model
 from matplotlib import pyplot as plt
+from pprint import pprint
+import itertools as it
 
 from app import MODELS_DIR
 from app.preprocessing import prepare_user_plus_vector_based_features
@@ -248,10 +250,10 @@ class SequentialMLP:
                                     # callbacks=[plot_losses],
                                     verbose=2)
 
-        test_score = self.nn_model.evaluate(x=self.X_test,
-                                            y=self.Y_test,
-                                            batch_size=self.minibatch_size,
-                                            verbose=2)
+        # test_score = self.nn_model.evaluate(x=self.X_test,
+        #                                     y=self.Y_test,
+        #                                     batch_size=self.minibatch_size,
+        #                                     verbose=2)
 
         if self.outfile:
             model_path = os.path.join(MODELS_DIR, self.outfile + '.h5')
@@ -264,7 +266,7 @@ class SequentialMLP:
         if create_plots:
             plot_model_metadata(history)
 
-        return test_score
+        return (history.history['acc'], history.history['val_acc'])
 
     def predict_single(self, X):
         """
@@ -289,25 +291,47 @@ if __name__ == "__main__":
     y_test = meta_dict['y_test']
     y_train_enc = meta_dict['y_train_enc']
     y_test_enc = meta_dict['y_test_enc']
-    #
-    # y_train_one_hot = keras.utils.to_categorical(y_train_enc, num_classes=2)
-    # y_test_one_hot = keras.utils.to_categorical(y_test_enc, num_classes=2)
 
-    obj = SequentialMLP(X_train=X_train,
-                        Y_train=y_train_enc,
-                        X_test=X_test,
-                        Y_test=y_test_enc,
-                        deep_layers=[20, 20, 20],
-                        learning_rate=0.001,
-                        num_epochs=100,
-                        minibatch_size=16,
-                        deep_activation='relu',
-                        activation='sigmoid',
-                        optimizer='adam',
-                        loss='binary_crossentropy',
-                        kernel_regularization_params=('l2', 0.01),
-                        dropout=0.4)
+    params = {'deep_layers': [[20, 20, 20],
+                              [40, 60, 40],
+                              [30, 30, 30]],
+              'learning_rate': [0.001, 0.01],
+              'optimizer': ['rmsprop', 'adam', 'sgd'],
+              'loss': ['binary_crossentropy'],
+              'deep_activation': ['relu', 'tanh'],
+              'activation': ['sigmoid']}
 
-    test_score = obj.fit(create_plots=True)
+    comb = it.product(params['deep_layers'],
+                      params['learning_rate'],
+                      params['optimizer'],
+                      params['loss'],
+                      params['deep_activation'],
+                      params['activation'])
 
-    print(test_score)
+    results = dict()
+    with open('results_mlp.txt', 'a') as f:
+        for i in comb:
+            obj = SequentialMLP(X_train=X_train,
+                                Y_train=y_train_enc,
+                                X_test=X_test,
+                                Y_test=y_test_enc,
+                                deep_layers=i[0],
+                                learning_rate=i[1],
+                                num_epochs=100,
+                                minibatch_size=16,
+                                deep_activation=i[4],
+                                activation=i[5],
+                                optimizer=i[2],
+                                loss=i[3],
+                                kernel_regularization_params=('l2', 0.01),
+                                dropout=0.4)
+
+            history = obj.fit(create_plots=False)
+
+            results[str(i)] = history
+            print('-' * 30, 'END OF RUN', '-' * 30)
+
+            for i in range(0, len(history), 10):
+                f.write(str(i) + ', ' + str(history[i]) + '\n')
+
+    pprint(results)
