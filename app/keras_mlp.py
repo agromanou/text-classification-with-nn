@@ -1,4 +1,6 @@
+import itertools as it
 import os
+from pprint import pprint
 
 import keras
 import numpy as np
@@ -9,8 +11,6 @@ from keras.models import Sequential
 from keras.optimizers import SGD, Adagrad, RMSprop, Adadelta
 from keras.utils import plot_model as keras_plot_model
 from matplotlib import pyplot as plt
-from pprint import pprint
-import itertools as it
 
 from app import MODELS_DIR
 from app.preprocessing import prepare_user_plus_vector_based_features
@@ -292,7 +292,11 @@ if __name__ == "__main__":
     y_train_enc = meta_dict['y_train_enc']
     y_test_enc = meta_dict['y_test_enc']
 
-    params = {'deep_layers': [[20, 20, 20],
+    params = {'deep_layers': [[20],
+                              [50],
+                              [100],
+                              [50, 50],
+                              [20, 20, 20],
                               [40, 60, 40],
                               [30, 30, 30]],
               'learning_rate': [0.001, 0.01],
@@ -309,7 +313,7 @@ if __name__ == "__main__":
                       params['activation'])
 
     results = dict()
-    with open('results_mlp.txt', 'a') as f:
+    with open('results_mlp2.txt', 'a') as f:
         for i in comb:
             obj = SequentialMLP(X_train=X_train,
                                 Y_train=y_train_enc,

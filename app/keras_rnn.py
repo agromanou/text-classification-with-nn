@@ -282,4 +282,4 @@ def bidirectional_gru_with_attention_layer(max_sequence_length=1000,
 
 
 if __name__ == "__main__":
-    bidirectional_lstm()
+    bidirectional_gru_with_attention_layer()
