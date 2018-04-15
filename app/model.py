@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 plt.style.use('ggplot')
 
 
-class Model:
+class ModelNN:
     def __init__(self,
                  loss,
                  optimizer,

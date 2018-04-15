@@ -6,13 +6,13 @@ import operator
 from keras import layers
 from keras import models
 
-from app.model import Model
+from app.model import ModelNN
 from app.preprocessing import prepare_user_plus_vector_based_features
 
 from pprint import pprint
 
 
-class SimpleMLP(Model):
+class SimpleMLP(ModelNN):
     def __init__(self,
                  layers_structure,
                  loss,
@@ -39,7 +39,7 @@ class SimpleMLP(Model):
         self.kernel_regularization_params = kernel_regularization_params
         self.dropout = dropout
 
-        Model.__init__(self,
+        ModelNN.__init__(self,
                        loss,
                        optimizer,
                        learning_rate,
@@ -162,8 +162,6 @@ if __name__ == '__main__':
 
             for n in range(0, len(history.history['val_acc']), 10):
                 f.write(str(n) + ', ' + str(history.history['val_acc'][n]) + '\n')
-
-    pprint(average)
 
     best_settings = max(average.items(), key=operator.itemgetter(1))[0]
 
