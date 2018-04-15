@@ -17,7 +17,6 @@ class Model:
                  batch_size):
 
         self.model = None
-
         self.epochs = epochs
         self.batch_size = batch_size
 
@@ -43,8 +42,7 @@ class Model:
             opt = optimizers.Adam(lr=learning_rate, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=decay)
 
         else:
-            raise Exception('Invalid Optimizer. Exiting ', self.optimizer)
-
+            raise Exception('Invalid Optimizer. Existing: ', self.optimizer)
         self.optimizer = opt
 
         assert loss in ['mean_squared_error', 'mean_absolute_error',
@@ -66,6 +64,9 @@ class Model:
                 self.kernel_regularizer = regularizers.l2(value)
 
     def build_model(self, input_shape, labels_number):
+        """
+        Abstract method implements model building with keras
+        """
         pass
 
     def fit(self, x_train, y_train):

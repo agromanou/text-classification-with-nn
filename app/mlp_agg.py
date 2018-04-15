@@ -4,7 +4,7 @@ from keras import layers
 from keras import models
 
 from app.preprocessing import prepare_user_plus_vector_based_features
-from app.model_agg import ModelAgg
+from app.model import ModelAgg
 
 
 class SimpleMLP(ModelAgg):
