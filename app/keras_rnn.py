@@ -13,11 +13,12 @@ from app.word_embedding import GloveWordEmbedding
 
 
 class AttentionLayer(Layer):
-    """Attention GRU network"""
+    """Attention GRU Layer"""
 
     def __init__(self, **kwargs):
         """
-
+        Custom Implementation of an Attention Layer.
+        Check here: https://keras.io/layers/writing-your-own-keras-layers/
         :param kwargs:
         """
 
@@ -32,8 +33,8 @@ class AttentionLayer(Layer):
         """
         assert len(input_shape) == 3
 
-        self.Weights = self.init((input_shape[-1],))
-        self.trainable_weights = [self.Weights]
+        self.W = self.init((input_shape[-1],))
+        self.trainable_weights = [self.W]
         super(AttentionLayer, self).build(input_shape)
 
     def call(self, x, mask=None):
@@ -43,7 +44,7 @@ class AttentionLayer(Layer):
         :param mask:
         :return:
         """
-        eij = K.tanh(K.dot(x, self.Weights))
+        eij = K.tanh(K.dot(x, self.W))
 
         ai = K.exp(eij)
         weights = ai / K.sum(ai, axis=1).dimshuffle(0, 'x')
