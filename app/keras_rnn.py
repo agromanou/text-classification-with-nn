@@ -1,5 +1,6 @@
 import numpy as np
 from keras import backend as K
+from keras import callbacks
 from keras import initializers
 from keras.engine.topology import Layer
 from keras.layers import Dense, Input, Embedding, LSTM, GRU, Bidirectional
@@ -112,10 +113,6 @@ class CustomRNNs:
     def prepare_data_for_rnn_networks(self):
         """
 
-        :param max_sequence_length:
-        :param max_nb_words:
-        :param embedding_dim:
-        :param validation_split:
         :return:
         """
         np.random.seed(200)
@@ -223,26 +220,23 @@ class CustomRNNs:
         print("Model Fitting - Bidirectional LSTM")
         print(model.summary())
 
+        tbCallBack = callbacks.TensorBoard(log_dir='./Graph',
+                                           histogram_freq=0,
+                                           write_graph=True,
+                                           write_images=True)
+
         history = model.fit(self.X_train,
                             self.y_train,
                             validation_data=(self.X_val, self.y_val),
                             nb_epoch=self.nb_epoch,
-                            batch_size=self.batch_size)
+                            batch_size=self.batch_size,
+                            callbacks=[tbCallBack])
 
         return history
 
     def bidirectional_gru_with_attention_layer(self):
         """
 
-        :param max_sequence_length:
-        :param max_nb_words:
-        :param embedding_dim:
-        :param validation_split:
-        :param loss:
-        :param optimizer:
-        :param batch_size:
-        :param nb_epoch:
-        :param activation:
         :return:
         """
 
@@ -279,6 +273,6 @@ class CustomRNNs:
 
 
 if __name__ == "__main__":
-    crnn_obj = CustomRNNs()
+    crnn_obj = CustomRNNs(embedding_dim=300)
 
     hist = crnn_obj.bidirectional_lstm()
