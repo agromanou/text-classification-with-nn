@@ -1,15 +1,13 @@
 import itertools as it
-import numpy as np
-
 import operator
+from pprint import pprint
 
+import numpy as np
 from keras import layers
 from keras import models
 
 from app.model_agg import Model
 from app.preprocessing import prepare_user_plus_vector_based_features
-
-from pprint import pprint
 
 
 class SimpleMLP(Model):
@@ -25,7 +23,7 @@ class SimpleMLP(Model):
                  momentum=0.9,
                  optimizer='adam',
                  kernel_regularization_params=('l2', 0.01),
-                 dropout=None):
+                 dropout=0.3):
 
         self.layers = layers_structure
         self.batch_size = batch_size
@@ -153,7 +151,8 @@ if __name__ == '__main__':
                               y_train=y_train_enc)
 
             average[tuple(i)] = np.mean(history.history['val_acc'][40:])
-            histories[tuple(i)] = {'acc': history.history['acc'], 'acc_val': history.history['val_acc']}
+            histories[tuple(i)] = {'acc': history.history['acc'],
+                                   'acc_val': history.history['val_acc']}
 
             print('-' * 30, 'END OF RUN', '-' * 30)
 
