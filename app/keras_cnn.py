@@ -152,9 +152,9 @@ def simpleCNN(max_sequence_length=1000,
     l_pool1 = MaxPooling1D(5)(l_cov1)
     l_cov2 = Conv1D(128, 5, activation=deep_activation)(l_pool1)
     l_pool2 = MaxPooling1D(5)(l_cov2)
-    # l_cov3 = Conv1D(128, 5, activation='relu')(l_pool2)
-    # l_pool3 = MaxPooling1D(35)(l_cov3)  # global max pooling
-    l_flat = Flatten()(l_pool2)
+    l_cov3 = Conv1D(128, 5, activation='relu')(l_pool2)
+    l_pool3 = MaxPooling1D(35)(l_cov3)  # global max pooling
+    l_flat = Flatten()(l_pool3)
     l_dense = Dense(128, activation=deep_activation)(l_flat)
     preds = Dense(2, activation=activation)(l_dense)
 
