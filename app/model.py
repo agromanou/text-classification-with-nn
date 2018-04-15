@@ -1,6 +1,12 @@
+import os
+
+import numpy as np
 from keras import optimizers
 from keras import regularizers
+from keras.utils import plot_model as keras_plot_model
 from matplotlib import pyplot as plt
+
+from app import MODELS_DIR
 
 plt.style.use('ggplot')
 
@@ -14,11 +20,30 @@ class Model:
                  momentum,
                  kernel_regularization_params,
                  epochs,
-                 batch_size):
+                 batch_size,
+                 validation_size,
+                 outfile=None,
+                 plot_model=False
+                 ):
+        """
+
+        :param loss:
+        :param optimizer:
+        :param learning_rate:
+        :param decay:
+        :param momentum:
+        :param kernel_regularization_params:
+        :param validation_size:
+        :param epochs:
+        :param batch_size:
+        """
 
         self.model = None
         self.epochs = epochs
         self.batch_size = batch_size
+        self.validation_size = validation_size
+        self.plot_model = plot_model
+        self.outfile = outfile
 
         # restrictions about the optimizers
         self.optimizer = optimizer
@@ -52,7 +77,7 @@ class Model:
 
         self.loss = loss
 
-        # restriction about reguralization
+        # restriction about regularization
         if kernel_regularization_params:
             assert kernel_regularization_params[0] in ['l1', 'l2']
             value = kernel_regularization_params[1]
@@ -79,27 +104,44 @@ class Model:
         self.build_model(input_shape=input_shape,
                          labels_number=2)
 
-        print('PRINT {}, {}'.format(self.epochs, self.batch_size))
+        print('EPOCHS: {}, BATCH SIZE: {}'.format(self.epochs, self.batch_size))
+
         history = self.model.fit(x=x_train,
                                  y=y_train,
                                  epochs=self.epochs,
                                  batch_size=self.batch_size,
-                                 validation_split=0.2,
+                                 validation_split=self.validation_size,
                                  verbose=2)
+
+        if self.outfile:
+            model_path = os.path.join(MODELS_DIR, self.outfile + '.h5')
+            self.model.save(model_path)
+
+        if self.outfile and self.plot_model:
+            model_img_path = MODELS_DIR + self.outfile + '.png'
+            keras_plot_model(self.model,
+                             to_file=model_img_path,
+                             show_shapes=True,
+                             show_layer_names=True)
 
         return history
 
-    def predict(self, x_test, y_test):
+    def predict(self, X, y):
         """
 
         :return:
         """
-        test_score = self.model.evaluate(x=x_test,
-                                         y=y_test,
-                                         batch_size=self.batch_size,
-                                         verbose=2)
+        scores = self.model.evaluate(x=X,
+                                     y=y,
+                                     batch_size=self.batch_size,
+                                     verbose=2)
 
-        return test_score
+        classes = self.model.predict(X, batch_size=self.batch_size)
+        classes = np.argmax(classes)
+
+        return {'scores': scores,
+                'y_pred': classes,
+                'y_true': y}
 
     @staticmethod
     def plot_model_metadata(history):
