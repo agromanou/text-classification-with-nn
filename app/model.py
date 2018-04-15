@@ -13,7 +13,7 @@ from app import MODELS_DIR
 plt.style.use('ggplot')
 
 
-class Model:
+class ModelNN:
     def __init__(self,
                  loss,
                  optimizer,
