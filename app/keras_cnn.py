@@ -9,10 +9,12 @@ from keras.utils.np_utils import to_categorical
 from app.load_data import parse_reviews
 from app.word_embedding import GloveWordEmbedding
 
+import matplotlib.pyplot as plt
+
 
 def simpleCNN(max_sequence_length=100,
               max_nb_words=20000,
-              embedding_dim=100,
+              embedding_dim=200,
               validation_split=0.2,
               loss='categorical_crossentropy',
               optimizer='rmsprop',
@@ -104,9 +106,9 @@ def simpleCNN(max_sequence_length=100,
     l_pool1 = MaxPooling1D(5)(l_cov1)
     l_cov2 = Conv1D(128, 5, activation='relu')(l_pool1)
     l_pool2 = MaxPooling1D(5)(l_cov2)
-    l_cov3 = Conv1D(128, 5, activation='relu')(l_pool2)
-    l_pool3 = MaxPooling1D(35)(l_cov3)  # global max pooling
-    l_flat = Flatten()(l_pool3)
+    # l_cov3 = Conv1D(128, 5, activation='relu')(l_pool2)
+    # l_pool3 = MaxPooling1D(35)(l_cov3)  # global max pooling
+    l_flat = Flatten()(l_pool2)
     l_dense = Dense(128, activation='relu')(l_flat)
     preds = Dense(2, activation='softmax')(l_dense)
 
@@ -127,6 +129,30 @@ def simpleCNN(max_sequence_length=100,
                                 y=test_labels,
                                 batch_size=batch_size,
                                 verbose=2)
+
+    #  "Accuracy"
+    # plt.subplot(1, 2, 1)
+    plt.plot(history.history['acc'])
+    plt.plot(history.history['val_acc'])
+    plt.title('Model Accuracy')
+    plt.ylabel('accuracy')
+    plt.xlabel('epoch')
+    plt.ylim(ymax=1)
+    plt.legend(['train', 'validation'], loc='upper left')
+    plt.show()
+
+    # "Loss"
+    # plt.subplot(1, 2, 2)
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.title('Model Loss')
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'validation'], loc='upper left')
+
+    # plt.tight_layout()
+
+    plt.show()
 
     return test_score
 

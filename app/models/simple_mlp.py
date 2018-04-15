@@ -6,8 +6,10 @@ from app.models.model import Model
 
 class SimpleMLP(Model):
     def __init__(self,
-                 train_data,
-                 train_labels,
+                 x_train,
+                 y_train,
+                 x_test,
+                 y_test,
                  layers,
                  loss,
                  epochs=1500,
@@ -20,8 +22,7 @@ class SimpleMLP(Model):
                  optimizer='adam',
                  kernel_regularization_params=('l2', 0.01),
                  activity_regularization_params=None,
-                 dropout=None
-                 ):
+                 dropout=None):
 
         self.layers = layers
         self.batch_size = batch_size
@@ -36,8 +37,8 @@ class SimpleMLP(Model):
         self.kernel_regularization_params = kernel_regularization_params
         self.dropout = dropout
 
-        self.train_data = train_data
-        self.train_labels = train_labels
+        self.train_data = x_train
+        self.train_labels = y_train
 
         assert loss in ['mean_squared_error', 'mean_absolute_error',
                         'mean_squared_logarithmic_error', 'squared_hinge',
@@ -52,7 +53,11 @@ class SimpleMLP(Model):
                        kernel_regularization_params,
                        activity_regularization_params,
                        epochs,
-                       batch_size)
+                       batch_size,
+                       x_train,
+                       y_train,
+                       x_test,
+                       y_test)
 
     def build_model(self):
         """

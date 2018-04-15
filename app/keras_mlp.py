@@ -299,7 +299,7 @@ if __name__ == "__main__":
                         Y_test=y_test_enc,
                         deep_layers=[20, 20, 20],
                         learning_rate=0.001,
-                        num_epochs=2000,
+                        num_epochs=100,
                         minibatch_size=16,
                         deep_activation='relu',
                         activation='sigmoid',

@@ -99,7 +99,7 @@ def reviews_to_txt(data_type='train'):
 
     with open(outfile_path, 'w', encoding='utf8') as out:
         for row in reviews_df['text']:
-            out.write(row + '\n')
+            out.write(row + ' ')
 
     return reviews_df
 

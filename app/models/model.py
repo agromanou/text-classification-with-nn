@@ -7,6 +7,10 @@ import numpy as np
 
 class Model:
     def __init__(self,
+                 x_train,
+                 y_train,
+                 x_test,
+                 y_test,
                  optimizer,
                  learning_rate,
                  decay,
@@ -21,11 +25,10 @@ class Model:
         self.epochs = epochs
         self.batch_size = batch_size
 
-        self._x_train = None
-        self._partial_x_train = None
-        self._partial_y_train = None
-        self._x_val = None
-        self._y_val = None
+        self.x_train = x_train
+        self.y_train = y_train
+        self.x_test = x_test
+        self.y_test = y_test
 
         # restrictions about the optimizers and the loss functions.
         self.optimizer = optimizer
@@ -49,7 +52,7 @@ class Model:
             opt = optimizers.Adam(lr=learning_rate, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=decay)
 
         else:
-            raise Exception('Invalid Optimizer. Exiting')
+            raise Exception('Invalid Optimizer. Exiting ', self.optimizer)
 
         self.optimizer = opt
 
@@ -74,58 +77,14 @@ class Model:
             elif activity_regularization_params[0] == 'l2':
                 self.activity_regularizer = regularizers.l2(value)
 
-        # print("Number of Training examples = {}".format(self.n_examples_x_train))
-        # print("Number of Test examples = {}".format(self.X_test.shape[0]))
-        # print("Number of Features: {}".format(self.n_x_features))
-        # print("Number of Classes: {}".format(self.n_y))
-        # print("X_train shape: {}".format(X_train.shape))
-        # print("Y_train shape: {}".format(Y_train.shape))
-        # print("X_test shape: {}".format(X_test.shape))
-        # print("Y_test shape: {}".format(Y_test.shape), end='\n\n')
-
-    @staticmethod
-    def vectorize_sequences(sequences, dimensions=10000):
-        """
-
-        :param sequences:
-        :param dimensions:
-        :return:
-        """
-        results = np.zeros((len(sequences), dimensions))
-        for i, sequence in enumerate(sequences):
-            results[i, sequence] = 1
-
-        return results
-
-    @staticmethod
-    def to_one_hot(labels, dimensions=46):
-        """
-
-        :param labels:
-        :param dimensions:
-        :return:
-        """
-        results = np.zeros(len(labels), dimensions)
-        for i, label in enumerate(labels):
-            results[i, label] = 1.
-
-        return results
-
-    def prepare_data(self, train_data, train_labels):
-        """
-
-        :param train_data:
-        :param train_labels:
-        :return:
-        """
-        self.train_data = train_data
-        self._x_train = self.vectorize_sequences(train_data)
-
-        self._x_val = self._x_train[:1000]
-        self._partial_x_train = self._x_train[1000:]
-
-        self._y_val = train_labels[:1000]
-        self._partial_y_train = self._y_val[1000:]
+                # print("Number of Training examples = {}".format(self.n_examples_x_train))
+                # print("Number of Test examples = {}".format(self.X_test.shape[0]))
+                # print("Number of Features: {}".format(self.n_x_features))
+                # print("Number of Classes: {}".format(self.n_y))
+                # print("X_train shape: {}".format(X_train.shape))
+                # print("Y_train shape: {}".format(Y_train.shape))
+                # print("X_test shape: {}".format(X_test.shape))
+                # print("Y_test shape: {}".format(Y_test.shape), end='\n\n')
 
     def build_model(self):
         pass
@@ -135,13 +94,18 @@ class Model:
 
         :return:
         """
-        # self.prepare_data(self.train_data, self.train_labels)
         self.build_model()
 
-        history = self.model.fit(self._partial_x_train,
-                                 self._partial_y_train,
+        history = self.model.fit(x=self.x_train,
+                                 y=self.y_train,
                                  epochs=self.epochs,
                                  batch_size=self.batch_size,
-                                 validation_data=(self._x_val, self._y_val))
+                                 validation_split=0.2,
+                                 verbose=2)
+
+        test_score = self.model.evaluate(x=self.x_test,
+                                         y=self.y_test,
+                                         batch_size=self.batch_size,
+                                         verbose=2)
 
         return history

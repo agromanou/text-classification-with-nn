@@ -5,6 +5,9 @@ from sklearn.preprocessing import StandardScaler
 from app.features import *
 from app.load_data import parse_reviews
 
+from keras import models
+from keras import layers
+
 
 def prepare_user_plus_vector_based_features():
     """
@@ -75,7 +78,6 @@ def prepare_user_plus_vector_based_features():
         'y_test_enc': y_test_enc
     }
 
-
 def prepare_embedding_based_features(emb_dim=100, emb_type='tfidf'):
     """
 
@@ -128,8 +130,38 @@ def prepare_embedding_based_features(emb_dim=100, emb_type='tfidf'):
         'y_test_enc': y_test_enc}
 
 
-if __name__ == "__main__":
-    meta = prepare_embedding_based_features(emb_dim=50, emb_type='tf')
-    print(meta.keys())
+if __name__ == '__main__':
+    # data = dict()
+    data = prepare_user_plus_vector_based_features()
 
-    print(meta['X_train'].shape)
+    x_train = data['X_train']
+    y_train = data['y_train']
+
+    x_test = data['X_test']
+    y_test = data['y_test']
+
+    print(type(x_train))
+    print(x_train.shape)
+    print(type(y_train))
+    print(y_train.shape)
+
+    print(type(x_test))
+    print(x_test.shape)
+    print(type(y_test))
+    print(y_test.shape)
+    print((x_train.shape[1],))
+
+    # mlp = SimpleMLP()
+    # mlp.fit(train_data=x_train, train_labels=y_train, epochs=3, batch_size=150)
+
+    model = models.Sequential()
+    model.add(layers.Dense(64,
+                           activation='relu',
+                           input_shape=(x_train.shape[1],)))
+    model.add(layers.Dense(64, activation='relu'))
+    model.add(layers.Dense(1))
+    model.compile(optimizer='rmsprop',
+                  loss='categorical_crossentropy',
+                  metrics=['accuracy'])
+
+    print(model.summary())
