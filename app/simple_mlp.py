@@ -1,15 +1,13 @@
 import itertools as it
-import numpy as np
-
 import operator
+from pprint import pprint
 
+import numpy as np
 from keras import layers
 from keras import models
 
 from app.model import ModelNN
 from app.preprocessing import prepare_user_plus_vector_based_features
-
-from pprint import pprint
 
 
 class SimpleMLP(ModelNN):
@@ -25,7 +23,7 @@ class SimpleMLP(ModelNN):
                  momentum=0.9,
                  optimizer='adam',
                  kernel_regularization_params=('l2', 0.01),
-                 dropout=None):
+                 dropout=0.3):
 
         self.layers = layers_structure
         self.batch_size = batch_size
@@ -123,7 +121,10 @@ if __name__ == '__main__':
     print("X_test shape: {}".format(x_test.shape))
     print("Y_test shape: {}".format(y_test_enc.shape), end='\n\n')
 
-    params = {'deep_layers': [(20, 20, 20),
+    params = {'deep_layers': [(20,),
+                              (60,),
+                              (100,),
+                              (20, 20, 20),
                               (40, 60, 40),
                               (30, 30, 30)],
               'learning_rate': [0.001, 0.01],

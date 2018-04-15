@@ -21,14 +21,7 @@ def prepare_data_for_conv_networks(max_sequence_length=1000,
                                    max_nb_words=20000,
                                    embedding_dim=100,
                                    validation_split=0.2):
-    """
 
-    :param max_sequence_length:
-    :param max_nb_words:
-    :param embedding_dim:
-    :param validation_split:
-    :return:
-    """
     np.random.seed(200)
 
     training_csv_df = parse_reviews(file_type='train', load_data=False, save_data=False)
@@ -204,16 +197,16 @@ class multipleCNN(ModelNN):
     def build_model(self, input_shape, labels_number):
         # Creating the Embedding layer using the predefined embedding matrix
         embedding_layer = Embedding(len(word_index) + 1,
-                                    embedding_dim,
+                                    self.embedding_dim,
                                     weights=[embedding_matrix],
-                                    input_length=max_sequence_length,
+                                    input_length=self.max_sequence_length,
                                     trainable=True)
 
         # applying a more complex convolutional approach
         convs = []
         filter_sizes = [3, 4, 5]
 
-        sequence_input = Input(shape=(max_sequence_length,), dtype='int32')
+        sequence_input = Input(shape=(self.max_sequence_length,), dtype='int32')
         embedded_sequences = embedding_layer(sequence_input)
 
         for fsz in filter_sizes:
@@ -236,7 +229,7 @@ class multipleCNN(ModelNN):
         print(model.summary())
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
 
     MAX_SEQUENCE_LENGTH = 1000
     MAX_NB_WORDS = 20000
@@ -287,8 +280,8 @@ if __name__ == "__main__":
 
             results[tuple(i)] = (history.history['acc'], history.history['val_acc'])
             average[tuple(i)] = np.mean(history.history['val_acc'][40:])
-
             print('-' * 30, 'END OF RUN', '-' * 30)
+
             f.write('{}, {}, {}\n'.format(str(i),
                                           'Accuracy: ' + str(history.history['acc']),
                                           'Accuracy Val : ' + str(history.history['val_acc'])))
