@@ -62,224 +62,223 @@ class AttentionLayer(Layer):
         return input_shape[0], input_shape[-1]
 
 
-def prepare_data_for_rnn_networks(max_sequence_length=1000,
-                                  max_nb_words=20000,
-                                  embedding_dim=100,
-                                  validation_split=0.2):
-    """
+class CustomRNNs:
 
-    :param max_sequence_length:
-    :param max_nb_words:
-    :param embedding_dim:
-    :param validation_split:
-    :return:
-    """
-    np.random.seed(200)
+    def __init__(self,
+                 max_sequence_length=1000,
+                 max_nb_words=20000,
+                 embedding_dim=100,
+                 validation_split=0.2,
+                 loss='categorical_crossentropy',
+                 optimizer='rmsprop',
+                 batch_size=32,
+                 nb_epoch=15,
+                 activation='softmax'
+                 ):
+        """
 
-    training_csv_df = parse_reviews(file_type='train', load_data=False, save_data=False)
-    test_csv_df = parse_reviews(file_type='test', load_data=False, save_data=False)
+        :param max_sequence_length:
+        :param max_nb_words:
+        :param embedding_dim:
+        :param validation_split:
+        :param loss:
+        :param optimizer:
+        :param batch_size:
+        :param nb_epoch:
+        :param activation:
+        """
 
-    mapper = {'positive': 1, 'negative': 0}
+        self.batch_size = batch_size
+        self.optimizer = optimizer
+        self.loss = loss
+        self.validation_split = validation_split
+        self.max_sequence_length = max_sequence_length
+        self.max_nb_words = max_nb_words
+        self.embedding_dim = embedding_dim
+        self.nb_epoch = nb_epoch
+        self.activation = activation
 
-    train_texts = list(training_csv_df['text'])
-    train_labels = list(training_csv_df['polarity'].map(mapper))
+        self.X_train = None
+        self.X_val = None
+        self.X_test = None
+        self.y_train = None
+        self.y_val = None
+        self.y_test = None
+        self.embedding_matrix = None
+        self.word_index = None
 
-    test_texts = list(test_csv_df['text'])
-    test_labels = list(test_csv_df['polarity'].map(mapper))
+        self.prepare_data_for_rnn_networks()
 
-    tokenizer = Tokenizer(num_words=max_nb_words)
-    tokenizer.fit_on_texts(train_texts)
+    def prepare_data_for_rnn_networks(self):
+        """
 
-    train_sequences = tokenizer.texts_to_sequences(train_texts)
-    test_sequences = tokenizer.texts_to_sequences(test_texts)
+        :param max_sequence_length:
+        :param max_nb_words:
+        :param embedding_dim:
+        :param validation_split:
+        :return:
+        """
+        np.random.seed(200)
 
-    word_index = tokenizer.word_index
-    print('Found {} unique tokens.'.format(len(word_index)))
+        training_csv_df = parse_reviews(file_type='train', load_data=False, save_data=False)
+        test_csv_df = parse_reviews(file_type='test', load_data=False, save_data=False)
 
-    train_data = pad_sequences(train_sequences, maxlen=max_sequence_length)
-    test_data = pad_sequences(test_sequences, maxlen=max_sequence_length)
+        mapper = {'positive': 1, 'negative': 0}
 
-    train_labels = to_categorical(np.asarray(train_labels))
-    test_labels = to_categorical(np.asarray(test_labels))
+        train_texts = list(training_csv_df['text'])
+        train_labels = list(training_csv_df['polarity'].map(mapper))
 
-    print('Shape of data tensor:', train_data.shape)
-    print('Shape of label tensor:', train_labels.shape)
+        test_texts = list(test_csv_df['text'])
+        test_labels = list(test_csv_df['polarity'].map(mapper))
 
-    # shuffling the training instances
-    indices = np.arange(train_data.shape[0])
-    np.random.shuffle(indices)
-    train_data = train_data[indices]
-    train_labels = train_labels[indices]
+        tokenizer = Tokenizer(num_words=self.max_nb_words)
+        tokenizer.fit_on_texts(train_texts)
 
-    # calculating number of validation examples
-    nb_validation_samples = int(validation_split * train_data.shape[0])
+        train_sequences = tokenizer.texts_to_sequences(train_texts)
+        test_sequences = tokenizer.texts_to_sequences(test_texts)
 
-    # splitting in training and validation data
-    x_train = train_data[:-nb_validation_samples]
-    y_train = train_labels[:-nb_validation_samples]
-    x_val = train_data[-nb_validation_samples:]
-    y_val = train_labels[-nb_validation_samples:]
+        word_index = tokenizer.word_index
+        print('Found {} unique tokens.'.format(len(word_index)))
 
-    print('Number of positive and negative reviews in training and validation set ')
-    print(y_train.sum(axis=0))
-    print(y_val.sum(axis=0))
+        train_data = pad_sequences(train_sequences, maxlen=self.max_sequence_length)
+        test_data = pad_sequences(test_sequences, maxlen=self.max_sequence_length)
 
-    # Instantiating the Glove embeddings
-    gwe_obj = GloveWordEmbedding()
-    embeddings_index = gwe_obj.get_word_embeddings(dimension=embedding_dim)
-    print('Total {} word vectors in Glove 6B {}d.'.format(len(embeddings_index), embedding_dim))
+        train_labels = to_categorical(np.asarray(train_labels))
+        test_labels = to_categorical(np.asarray(test_labels))
 
-    # constructing an embedding matrix
-    embedding_matrix = np.random.random((len(word_index) + 1, embedding_dim))
-    for word, i in word_index.items():
-        embedding_vector = embeddings_index.get(word)
-        if embedding_vector is not None:
-            # words not found in embedding index will be all-zeros.
-            embedding_matrix[i] = embedding_vector
+        print('Shape of data tensor:', train_data.shape)
+        print('Shape of label tensor:', train_labels.shape)
 
-    return {
-        'X_train': x_train,
-        'X_val': x_val,
-        'X_test': test_data,
-        'y_train': y_train,
-        'y_val': y_val,
-        'y_test': test_labels,
-        'embedding_matrix': embedding_matrix,
-        'word_index': word_index
-    }
+        # shuffling the training instances
+        indices = np.arange(train_data.shape[0])
+        np.random.shuffle(indices)
+        train_data = train_data[indices]
+        train_labels = train_labels[indices]
 
+        # calculating number of validation examples
+        nb_validation_samples = int(self.validation_split * train_data.shape[0])
 
-def bidirectional_lstm(max_sequence_length=1000,
-                       max_nb_words=20000,
-                       embedding_dim=100,
-                       validation_split=0.2,
-                       loss='categorical_crossentropy',
-                       optimizer='rmsprop',
-                       batch_size=32,
-                       nb_epoch=20,
-                       activation='softmax'):
-    """
+        # splitting in training and validation data
+        x_train = train_data[:-nb_validation_samples]
+        y_train = train_labels[:-nb_validation_samples]
+        x_val = train_data[-nb_validation_samples:]
+        y_val = train_labels[-nb_validation_samples:]
 
-    :param max_sequence_length:
-    :param max_nb_words:
-    :param embedding_dim:
-    :param validation_split:
-    :param loss:
-    :param optimizer:
-    :param batch_size:
-    :param nb_epoch:
-    :param activation:
-    :return:
-    """
-    data_sets = prepare_data_for_rnn_networks(max_sequence_length=max_sequence_length,
-                                              max_nb_words=max_nb_words,
-                                              embedding_dim=embedding_dim,
-                                              validation_split=validation_split)
-    x_train = data_sets['X_train']
-    x_val = data_sets['X_val']
-    y_train = data_sets['y_train']
-    y_val = data_sets['y_val']
-    embedding_matrix = data_sets['embedding_matrix']
-    word_index = data_sets['word_index']
+        print('Number of positive and negative reviews in training and validation set ')
+        print(y_train.sum(axis=0))
+        print(y_val.sum(axis=0))
 
-    y_test = data_sets['y_test']
-    x_test = data_sets['X_test']
+        # Instantiating the Glove embeddings
+        gwe_obj = GloveWordEmbedding()
+        embeddings_index = gwe_obj.get_word_embeddings(dimension=self.embedding_dim)
+        print('Total {} word vectors in Glove 6B {}d.'.format(len(embeddings_index), self.embedding_dim))
 
-    embedding_layer = Embedding(len(word_index) + 1,
-                                embedding_dim,
-                                weights=[embedding_matrix],
-                                input_length=max_sequence_length,
-                                trainable=True)
+        # constructing an embedding matrix
+        embedding_matrix = np.random.random((len(word_index) + 1, self.embedding_dim))
+        for word, i in word_index.items():
+            embedding_vector = embeddings_index.get(word)
+            if embedding_vector is not None:
+                # words not found in embedding index will be all-zeros.
+                embedding_matrix[i] = embedding_vector
 
-    sequence_input = Input(shape=(max_sequence_length,), dtype='int32')
-    embedded_sequences = embedding_layer(sequence_input)
-    l_lstm = Bidirectional(LSTM(100))(embedded_sequences)
-    preds = Dense(2, activation=activation)(l_lstm)
-    model = Model(sequence_input, preds)
-    model.compile(loss=loss,
-                  optimizer=optimizer,
-                  metrics=['acc'])
+        self.X_train = x_train
+        self.X_val = x_val
+        self.X_test = test_data
+        self.y_train = y_train
+        self.y_val = y_val
+        self.y_test = test_labels
+        self.embedding_matrix = embedding_matrix
+        self.word_index = word_index
 
-    print("Model Fitting - Bidirectional LSTM")
-    print(model.summary())
+        return dict(X_train=x_train,
+                    X_val=x_val,
+                    X_test=test_data,
+                    y_train=y_train,
+                    y_val=y_val,
+                    y_test=test_labels,
+                    embedding_matrix=embedding_matrix,
+                    word_index=word_index)
 
-    history = model.fit(x_train,
-                        y_train,
-                        validation_data=(x_val, y_val),
-                        nb_epoch=nb_epoch,
-                        batch_size=batch_size)
+    def bidirectional_lstm(self):
+        """
 
-    return history
+        :return:
+        """
 
+        embedding_layer = Embedding(len(self.word_index) + 1,
+                                    self.embedding_dim,
+                                    weights=[self.embedding_matrix],
+                                    input_length=self.max_sequence_length,
+                                    trainable=True)
 
-def bidirectional_gru_with_attention_layer(max_sequence_length=1000,
-                                           max_nb_words=20000,
-                                           embedding_dim=100,
-                                           validation_split=0.2,
-                                           loss='categorical_crossentropy',
-                                           optimizer='rmsprop',
-                                           batch_size=50,
-                                           nb_epoch=10,
-                                           activation='softmax'):
-    """
+        sequence_input = Input(shape=(self.max_sequence_length,), dtype='int32')
+        embedded_sequences = embedding_layer(sequence_input)
+        l_lstm = Bidirectional(LSTM(100))(embedded_sequences)
+        preds = Dense(2, activation=self.activation)(l_lstm)
+        model = Model(sequence_input, preds)
+        model.compile(loss=self.loss,
+                      optimizer=self.optimizer,
+                      metrics=['acc'])
 
-    :param max_sequence_length:
-    :param max_nb_words:
-    :param embedding_dim:
-    :param validation_split:
-    :param loss:
-    :param optimizer:
-    :param batch_size:
-    :param nb_epoch:
-    :param activation:
-    :return:
-    """
+        print("Model Fitting - Bidirectional LSTM")
+        print(model.summary())
 
-    data_sets = prepare_data_for_rnn_networks(max_sequence_length=max_sequence_length,
-                                              max_nb_words=max_nb_words,
-                                              embedding_dim=embedding_dim,
-                                              validation_split=validation_split)
-    x_train = data_sets['X_train']
-    x_val = data_sets['X_val']
-    y_train = data_sets['y_train']
-    y_val = data_sets['y_val']
-    embedding_matrix = data_sets['embedding_matrix']
-    word_index = data_sets['word_index']
+        history = model.fit(self.X_train,
+                            self.y_train,
+                            validation_data=(self.X_val, self.y_val),
+                            nb_epoch=self.nb_epoch,
+                            batch_size=self.batch_size)
 
-    y_test = data_sets['y_test']
-    x_test = data_sets['X_test']
+        return history
 
-    embedding_layer = Embedding(len(word_index) + 1,
-                                embedding_dim,
-                                weights=[embedding_matrix],
-                                input_length=max_sequence_length,
-                                trainable=True)
+    def bidirectional_gru_with_attention_layer(self):
+        """
 
-    sequence_input = Input(shape=(max_sequence_length,), dtype='int32')
-    embedded_sequences = embedding_layer(sequence_input)
-    # adding bidirectional GRU
-    l_gru = Bidirectional(GRU(100, return_sequences=True))(embedded_sequences)
-    # Adding attention layer
-    l_att = AttentionLayer()(l_gru)
-    # Adding output layer
-    preds = Dense(2, activation=activation)(l_att)
+        :param max_sequence_length:
+        :param max_nb_words:
+        :param embedding_dim:
+        :param validation_split:
+        :param loss:
+        :param optimizer:
+        :param batch_size:
+        :param nb_epoch:
+        :param activation:
+        :return:
+        """
 
-    model = Model(sequence_input, preds)
-    model.compile(loss=loss,
-                  optimizer=optimizer,
-                  metrics=['acc'])
+        embedding_layer = Embedding(len(self.word_index) + 1,
+                                    self.embedding_dim,
+                                    weights=[self.embedding_matrix],
+                                    input_length=self.max_sequence_length,
+                                    trainable=True)
 
-    print("model fitting - Attention GRU network")
-    print(model.summary())
+        sequence_input = Input(shape=(self.max_sequence_length,), dtype='int32')
+        embedded_sequences = embedding_layer(sequence_input)
+        # adding bidirectional GRU
+        l_gru = Bidirectional(GRU(100, return_sequences=True))(embedded_sequences)
+        # Adding attention layer
+        l_att = AttentionLayer()(l_gru)
+        # Adding output layer
+        preds = Dense(2, activation=self.activation)(l_att)
 
-    history = model.fit(x_train,
-                        y_train,
-                        validation_data=(x_val, y_val),
-                        nb_epoch=nb_epoch,
-                        batch_size=batch_size)
+        model = Model(sequence_input, preds)
+        model.compile(loss=self.loss,
+                      optimizer=self.optimizer,
+                      metrics=['acc'])
 
-    return history
+        print("model fitting - Attention GRU network")
+        print(model.summary())
+
+        history = model.fit(self.X_train,
+                            self.y_train,
+                            validation_data=(self.X_val, self.y_val),
+                            nb_epoch=self.nb_epoch,
+                            batch_size=self.batch_size)
+
+        return history
 
 
 if __name__ == "__main__":
-    bidirectional_gru_with_attention_layer()
+    crnn_obj = CustomRNNs()
+
+    hist = crnn_obj.bidirectional_lstm()

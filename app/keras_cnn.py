@@ -101,16 +101,16 @@ def prepare_data_for_conv_networks(max_sequence_length=1000,
     }
 
 
-def simpleCNN(max_sequence_length=1000,
-              max_nb_words=20000,
-              embedding_dim=100,
-              validation_split=0.2,
-              loss='categorical_crossentropy',
-              optimizer='rmsprop',
-              batch_size=64,
-              nb_epoch=10,
-              deep_activation='relu',
-              activation='sigmoid'):
+def stacked_cnn(max_sequence_length=1000,
+                max_nb_words=20000,
+                embedding_dim=100,
+                validation_split=0.2,
+                loss='categorical_crossentropy',
+                optimizer='rmsprop',
+                batch_size=64,
+                nb_epoch=10,
+                deep_activation='relu',
+                activation='sigmoid'):
     """
 
     :param max_sequence_length:
@@ -199,16 +199,16 @@ def simpleCNN(max_sequence_length=1000,
     return history
 
 
-def betterCNN(max_sequence_length=1000,
-              max_nb_words=20000,
-              embedding_dim=100,
-              validation_split=0.2,
-              loss='categorical_crossentropy',
-              optimizer='rmsprop',
-              batch_size=64,
-              nb_epoch=10,
-              deep_activation='relu',
-              activation='softmax'):
+def multiple_filter_cnn(max_sequence_length=1000,
+                        max_nb_words=20000,
+                        embedding_dim=100,
+                        validation_split=0.2,
+                        loss='categorical_crossentropy',
+                        optimizer='rmsprop',
+                        batch_size=64,
+                        nb_epoch=10,
+                        deep_activation='relu',
+                        activation='softmax'):
     """
 
     :param max_sequence_length:
@@ -329,12 +329,12 @@ if __name__ == "__main__":
     results = dict()
     with open('results_cnn.txt', 'a') as f:
         for i in comb:
-            history = betterCNN(max_sequence_length=i[0],
-                                embedding_dim=i[1],
-                                loss=i[3],
-                                optimizer=i[2],
-                                deep_activation=i[4],
-                                activation=i[5])
+            history = multiple_filter_cnn(max_sequence_length=i[0],
+                                          embedding_dim=i[1],
+                                          loss=i[3],
+                                          optimizer=i[2],
+                                          deep_activation=i[4],
+                                          activation=i[5])
 
             results[str(i)] = (history.history['acc'], history.history['val_acc'])
             print('-' * 30, 'END OF RUN', '-' * 30)
@@ -343,5 +343,3 @@ if __name__ == "__main__":
                                           'Accuracy Val : ' + str(history.history['val_acc'])))
 
     pprint(results)
-
-

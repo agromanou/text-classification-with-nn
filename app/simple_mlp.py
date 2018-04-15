@@ -121,7 +121,10 @@ if __name__ == '__main__':
     print("X_test shape: {}".format(x_test.shape))
     print("Y_test shape: {}".format(y_test_enc.shape), end='\n\n')
 
-    params = {'deep_layers': [(20, 20, 20),
+    params = {'deep_layers': [(20,),
+                              (60,),
+                              (100,),
+                              (20, 20, 20),
                               (40, 60, 40),
                               (30, 30, 30)],
               'learning_rate': [0.001, 0.01],
