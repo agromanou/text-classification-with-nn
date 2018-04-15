@@ -32,10 +32,8 @@ class AttentionLayer(Layer):
         """
         assert len(input_shape) == 3
 
-        # self.W = self.init((input_shape[-1],1))
-        self.W = self.init((input_shape[-1],))
-        # self.input_spec = [InputSpec(shape=input_shape)]
-        self.trainable_weights = [self.W]
+        self.Weights = self.init((input_shape[-1],))
+        self.trainable_weights = [self.Weights]
         super(AttentionLayer, self).build(input_shape)
 
     def call(self, x, mask=None):
@@ -45,7 +43,7 @@ class AttentionLayer(Layer):
         :param mask:
         :return:
         """
-        eij = K.tanh(K.dot(x, self.W))
+        eij = K.tanh(K.dot(x, self.Weights))
 
         ai = K.exp(eij)
         weights = ai / K.sum(ai, axis=1).dimshuffle(0, 'x')
