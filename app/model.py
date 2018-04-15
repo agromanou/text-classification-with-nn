@@ -3,6 +3,7 @@ import os
 import numpy as np
 from keras import optimizers
 from keras import regularizers
+from keras.models import load_model
 from keras.utils import plot_model as keras_plot_model
 from matplotlib import pyplot as plt
 
@@ -23,7 +24,8 @@ class Model:
                  batch_size,
                  validation_size,
                  outfile=None,
-                 plot_model=False
+                 plot_model=False,
+                 load_model=False
                  ):
         """
 
@@ -44,6 +46,7 @@ class Model:
         self.validation_size = validation_size
         self.plot_model = plot_model
         self.outfile = outfile
+        self.load_model = load_model
 
         # restrictions about the optimizers
         self.optimizer = optimizer
@@ -87,6 +90,11 @@ class Model:
 
             elif kernel_regularization_params[0] == 'l2':
                 self.kernel_regularizer = regularizers.l2(value)
+
+    def load_model(self):
+        if self.load_model and self.outfile:
+            model_path = os.path.join(MODELS_DIR, self.outfile + '.h5')
+            self.model = load_model(model_path)
 
     def build_model(self, input_shape, labels_number):
         """
@@ -136,11 +144,11 @@ class Model:
                                      batch_size=self.batch_size,
                                      verbose=2)
 
-        classes = self.model.predict(X, batch_size=self.batch_size)
-        classes = np.argmax(classes)
+        predicted_classes = self.model.predict(X, batch_size=self.batch_size)
+        predicted_classes = list(map(lambda x: 1 if x > 0.5 else 0, list(np.squeeze(predicted_classes))))
 
         return {'scores': scores,
-                'y_pred': classes,
+                'y_pred': predicted_classes,
                 'y_true': y}
 
     @staticmethod
@@ -170,4 +178,3 @@ class Model:
         plt.xlabel('epoch')
         plt.legend(['train', 'validation'], loc='upper left')
         plt.show()
-
