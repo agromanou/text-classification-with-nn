@@ -30,7 +30,6 @@ class SimpleMLP(Model):
         self.deep_activation = deep_activation
         self.activation = activation
         self.loss = loss
-        self.optimizer = optimizer
         self.learning_rate = learning_rate
         self.decay = decay
         self.momentum = momentum
@@ -106,4 +105,3 @@ class SimpleMLP(Model):
 
         print(model.summary())
         self.model = model
-

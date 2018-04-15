@@ -102,10 +102,18 @@ class Model:
                                  batch_size=self.batch_size,
                                  validation_split=0.2,
                                  verbose=2)
+        return history
 
+    def predict(self):
+        """
+
+        :return:
+        """
         test_score = self.model.evaluate(x=self.x_test,
                                          y=self.y_test,
                                          batch_size=self.batch_size,
                                          verbose=2)
 
-        return history
+        return test_score
+
+

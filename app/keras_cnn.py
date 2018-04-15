@@ -339,8 +339,8 @@ if __name__ == "__main__":
             results[str(i)] = (history.history['acc'], history.history['val_acc'])
             print('-' * 30, 'END OF RUN', '-' * 30)
             f.write('{}, {}, {}\n'.format(str(i),
-                                          'Accuracty: ' + str(history.history['acc']),
-                                          'Accuracty Val : ' + str(history.history['val_acc'])))
+                                          'Accuracy: ' + str(history.history['acc']),
+                                          'Accuracy Val : ' + str(history.history['val_acc'])))
 
     pprint(results)
 
