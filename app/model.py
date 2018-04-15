@@ -1,19 +1,20 @@
-import os
+from app import MODELS_DIR
 
+import os
 import numpy as np
+from matplotlib import pyplot as plt
+
 from keras import callbacks
 from keras import optimizers
 from keras import regularizers
+
 from keras.models import load_model as keras_load_model
 from keras.utils import plot_model as keras_plot_model
-from matplotlib import pyplot as plt
-
-from app import MODELS_DIR
 
 plt.style.use('ggplot')
 
 
-class Model:
+class ModelNN:
     def __init__(self,
                  loss,
                  optimizer,
@@ -29,19 +30,18 @@ class Model:
                  load_model=False
                  ):
         """
-
-        :param loss:
-        :param optimizer:
-        :param learning_rate:
-        :param decay:
-        :param momentum:
-        :param kernel_regularization_params:
-        :param epochs:
-        :param batch_size:
-        :param validation_size:
+        :param loss: str, the name of the loss function
+        :param optimizer: str, the name of the optimizer
+        :param learning_rate: float, the learning rate
+        :param decay: float, the decay
+        :param momentum: float, momentum
+        :param kernel_regularization_params: tuple, the regularization params
+        :param epochs: int, the number of epochs
+        :param batch_size: int, the size of the batch
+        :param validation_size: float, the percentage of the validation split
         :param outfile:
-        :param plot_model:
-        :param load_model:
+        :param plot_model: boolean, if charts should plotted
+        :param load_model: boolean, if existing trained model is available
         """
 
         self.model = None
@@ -138,7 +138,7 @@ class Model:
             model_path = os.path.join(MODELS_DIR, self.outfile + '.h5')
             self.model = keras_load_model(model_path)
 
-    def build_model(self, input_shape, labels_number):
+    def build_model(self, *kwargs):
         """
         Abstract method implements model building with keras
         """
@@ -149,13 +149,6 @@ class Model:
 
         :return:
         """
-
-        # self.train_dev_split(X=x_train, y=y_train)
-
-        input_shape = (x_train.shape[1],)
-
-        self.build_model(input_shape=input_shape, labels_number=2)
-
         print('EPOCHS: {}, BATCH SIZE: {}'.format(self.epochs, self.batch_size))
 
         tbCallBack = callbacks.TensorBoard(log_dir='./Graph',
@@ -163,11 +156,13 @@ class Model:
                                            write_graph=True,
                                            write_images=True)
 
+        print('VALIDATION_SIZE: {}'.format(self.validation_size))
+
         history = self.model.fit(x=x_train,
                                  y=y_train,
                                  epochs=self.epochs,
                                  batch_size=self.batch_size,
-                                 validation_size=self.validation_size,
+                                 validation_split=self.validation_size,
                                  # validation_data=(self.X_val, self.y_val),
                                  verbose=2,
                                  callbacks=[tbCallBack])
