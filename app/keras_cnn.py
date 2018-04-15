@@ -1,5 +1,5 @@
 import numpy as np
-from keras.layers import Conv1D, MaxPooling1D, Embedding
+from keras.layers import Conv1D, MaxPooling1D, Embedding, Merge
 from keras.layers import Dense, Input, Flatten
 from keras.models import Model
 from keras.preprocessing.sequence import pad_sequences
@@ -10,25 +10,18 @@ from app.load_data import parse_reviews
 from app.word_embedding import GloveWordEmbedding
 
 
-def simpleCNN(max_sequence_length=100,
-              max_nb_words=20000,
-              embedding_dim=100,
-              validation_split=0.2,
-              loss='categorical_crossentropy',
-              optimizer='rmsprop',
-              batch_size=64,
-              nb_epoch=10):
+def prepare_data_for_conv_networks(max_sequence_length=1000,
+                                   max_nb_words=20000,
+                                   embedding_dim=100,
+                                   validation_split=0.2):
     """
 
     :param max_sequence_length:
     :param max_nb_words:
     :param embedding_dim:
     :param validation_split:
-    :param loss:
-    :param optimizer:
     :return:
     """
-
     training_csv_df = parse_reviews(file_type='train', load_data=False, save_data=False)
     test_csv_df = parse_reviews(file_type='test', load_data=False, save_data=False)
 
@@ -90,6 +83,53 @@ def simpleCNN(max_sequence_length=100,
             # words not found in embedding index will be all-zeros.
             embedding_matrix[i] = embedding_vector
 
+    return {
+        'X_train': x_train,
+        'X_val': x_val,
+        'X_test': test_data,
+        'y_train': y_train,
+        'y_val': y_val,
+        'y_test': test_labels,
+        'embedding_matrix': embedding_matrix,
+        'word_index': word_index
+    }
+
+
+def simpleCNN(max_sequence_length=1000,
+              max_nb_words=20000,
+              embedding_dim=100,
+              validation_split=0.2,
+              loss='categorical_crossentropy',
+              optimizer='rmsprop',
+              batch_size=64,
+              nb_epoch=10):
+    """
+
+    :param max_sequence_length:
+    :param max_nb_words:
+    :param embedding_dim:
+    :param validation_split:
+    :param loss:
+    :param optimizer:
+    :param batch_size:
+    :param nb_epoch:
+    :return:
+    """
+
+    data_sets = prepare_data_for_conv_networks(max_sequence_length=max_sequence_length,
+                                               max_nb_words=max_nb_words,
+                                               embedding_dim=embedding_dim,
+                                               validation_split=validation_split)
+    x_train = data_sets['X_train']
+    x_val = data_sets['X_val']
+    y_train = data_sets['y_train']
+    y_val = data_sets['y_val']
+    embedding_matrix = data_sets['embedding_matrix']
+    word_index = data_sets['word_index']
+
+    y_test = data_sets['y_test']
+    x_test = data_sets['X_test']
+
     # Creating the Embedding layer using the predefined embedding matrix
     embedding_layer = Embedding(len(word_index) + 1,
                                 embedding_dim,
@@ -123,141 +163,97 @@ def simpleCNN(max_sequence_length=100,
                         nb_epoch=nb_epoch,
                         batch_size=batch_size)
 
-    test_score = model.evaluate(x=test_data,
-                                y=test_labels,
-                                batch_size=batch_size,
-                                verbose=2)
+    # test_score = model.evaluate(x=test_data,
+    #                             y=test_labels,
+    #                             batch_size=batch_size,
+    #                             verbose=2)
 
-    return test_score
+    # return test_score
+
+
+def betterCNN(max_sequence_length=1000,
+              max_nb_words=20000,
+              embedding_dim=100,
+              validation_split=0.2,
+              loss='categorical_crossentropy',
+              optimizer='rmsprop',
+              batch_size=64,
+              nb_epoch=10):
+    """
+
+    :param max_sequence_length:
+    :param max_nb_words:
+    :param embedding_dim:
+    :param validation_split:
+    :param loss:
+    :param optimizer:
+    :param batch_size:
+    :param nb_epoch:
+    :return:
+    """
+
+    data_sets = prepare_data_for_conv_networks(max_sequence_length=max_sequence_length,
+                                               max_nb_words=max_nb_words,
+                                               embedding_dim=embedding_dim,
+                                               validation_split=validation_split)
+    x_train = data_sets['X_train']
+    x_val = data_sets['X_val']
+    y_train = data_sets['y_train']
+    y_val = data_sets['y_val']
+    embedding_matrix = data_sets['embedding_matrix']
+    word_index = data_sets['word_index']
+
+    y_test = data_sets['y_test']
+    x_test = data_sets['X_test']
+
+    # Creating the Embedding layer using the predefined embedding matrix
+    embedding_layer = Embedding(len(word_index) + 1,
+                                embedding_dim,
+                                weights=[embedding_matrix],
+                                input_length=max_sequence_length,
+                                trainable=True)
+
+    # applying a more complex convolutional approach
+    convs = []
+    filter_sizes = [3, 4, 5]
+
+    sequence_input = Input(shape=(max_sequence_length,), dtype='int32')
+    embedded_sequences = embedding_layer(sequence_input)
+
+    for fsz in filter_sizes:
+        l_conv = Conv1D(nb_filter=128, filter_length=fsz, activation='relu')(embedded_sequences)
+        l_pool = MaxPooling1D(5)(l_conv)
+        convs.append(l_pool)
+
+    l_merge = Merge(mode='concat', concat_axis=1)(convs)
+    l_cov1 = Conv1D(128, 5, activation='relu')(l_merge)
+    l_pool1 = MaxPooling1D(5)(l_cov1)
+    l_cov2 = Conv1D(128, 5, activation='relu')(l_pool1)
+    l_pool2 = MaxPooling1D(30)(l_cov2)
+    l_flat = Flatten()(l_pool2)
+    l_dense = Dense(128, activation='relu')(l_flat)
+    preds = Dense(2, activation='softmax')(l_dense)
+
+    model = Model(sequence_input, preds)
+    model.compile(loss=loss, optimizer=optimizer, metrics=['acc'])
+
+    print("Model fitting - A more complex Convolutional Neural Network")
+    print(model.summary())
+    print()
+
+    history = model.fit(x_train,
+                        y_train,
+                        validation_data=(x_val, y_val),
+                        nb_epoch=nb_epoch,
+                        batch_size=batch_size)
+
+    # test_score = model.evaluate(x=test_data,
+    #                             y=test_labels,
+    #                             batch_size=batch_size,
+    #                             verbose=2)
+
+    # return test_score
 
 
 if __name__ == "__main__":
-    test_accuracy = simpleCNN()
-
-    print(test_accuracy)
-
-#
-#
-# MAX_SEQUENCE_LENGTH = 1000
-# MAX_NB_WORDS = 20000
-# EMBEDDING_DIM = 100
-# VALIDATION_SPLIT = 0.2
-#
-# data_train = parse_reviews(file_type='train', load_data=False, save_data=False)
-#
-# mapper = {'positive': 1, 'negative': 0}
-# texts = list(data_train['text'])
-# labels = list(data_train['polarity'].map(mapper))
-#
-# tokenizer = Tokenizer(nb_words=MAX_NB_WORDS)
-# tokenizer.fit_on_texts(texts)
-# sequences = tokenizer.texts_to_sequences(texts)
-#
-# word_index = tokenizer.word_index
-# print('Found %s unique tokens.' % len(word_index))
-#
-# data = pad_sequences(sequences, maxlen=MAX_SEQUENCE_LENGTH)
-#
-# labels = to_categorical(np.asarray(labels))
-# print('Shape of data tensor:', data.shape)
-# print('Shape of label tensor:', labels.shape)
-#
-# indices = np.arange(data.shape[0])
-# np.random.shuffle(indices)
-# data = data[indices]
-# labels = labels[indices]
-# nb_validation_samples = int(VALIDATION_SPLIT * data.shape[0])
-#
-# x_train = data[:-nb_validation_samples]
-# y_train = labels[:-nb_validation_samples]
-# x_val = data[-nb_validation_samples:]
-# y_val = labels[-nb_validation_samples:]
-#
-# print('Number of positive and negative reviews in training and validation set ')
-# print(y_train.sum(axis=0))
-# print(y_val.sum(axis=0))
-#
-# gwe_obj = GloveWordEmbedding()
-# embeddings_index = gwe_obj.get_word_embeddings(dimension=EMBEDDING_DIM)
-# print('Total {} word vectors in Glove 6B {}d.'.format(len(embeddings_index), EMBEDDING_DIM))
-#
-# embedding_matrix = np.random.random((len(word_index) + 1, EMBEDDING_DIM))
-# for word, i in word_index.items():
-#     embedding_vector = embeddings_index.get(word)
-#     if embedding_vector is not None:
-#         # words not found in embedding index will be all-zeros.
-#         embedding_matrix[i] = embedding_vector
-#
-#
-# embedding_layer = Embedding(len(word_index) + 1,
-#                             EMBEDDING_DIM,
-#                             weights=[embedding_matrix],
-#                             input_length=MAX_SEQUENCE_LENGTH,
-#                             trainable=True)
-#
-# sequence_input = Input(shape=(MAX_SEQUENCE_LENGTH,), dtype='int32')
-# embedded_sequences = embedding_layer(sequence_input)
-# l_cov1 = Conv1D(128, 5, activation='relu')(embedded_sequences)
-# l_pool1 = MaxPooling1D(5)(l_cov1)
-# l_cov2 = Conv1D(128, 5, activation='relu')(l_pool1)
-# l_pool2 = MaxPooling1D(5)(l_cov2)
-# l_cov3 = Conv1D(128, 5, activation='relu')(l_pool2)
-# l_pool3 = MaxPooling1D(35)(l_cov3)  # global max pooling
-# l_flat = Flatten()(l_pool3)
-# l_dense = Dense(128, activation='relu')(l_flat)
-# preds = Dense(2, activation='softmax')(l_dense)
-#
-# model = Model(sequence_input, preds)
-# model.compile(loss='categorical_crossentropy',
-#               optimizer='rmsprop',
-#               metrics=['acc'])
-#
-# print("model fitting - simplified convolutional neural network")
-# print(model.summary())
-# print()
-#
-# model.fit(x_train,
-#           y_train,
-#           validation_data=(x_val, y_val),
-#           nb_epoch=10,
-#           batch_size=32)
-#
-#
-# embedding_layer = Embedding(len(word_index) + 1,
-#                             EMBEDDING_DIM,
-#                             weights=[embedding_matrix],
-#                             input_length=MAX_SEQUENCE_LENGTH,
-#                             trainable=True)
-#
-# # applying a more complex convolutional approach
-# convs = []
-# filter_sizes = [3, 4, 5]
-#
-# sequence_input = Input(shape=(MAX_SEQUENCE_LENGTH,), dtype='int32')
-# embedded_sequences = embedding_layer(sequence_input)
-#
-# for fsz in filter_sizes:
-#     l_conv = Conv1D(nb_filter=128, filter_length=fsz, activation='relu')(embedded_sequences)
-#     l_pool = MaxPooling1D(5)(l_conv)
-#     convs.append(l_pool)
-#
-# l_merge = Merge(mode='concat', concat_axis=1)(convs)
-# l_cov1 = Conv1D(128, 5, activation='relu')(l_merge)
-# l_pool1 = MaxPooling1D(5)(l_cov1)
-# l_cov2 = Conv1D(128, 5, activation='relu')(l_pool1)
-# l_pool2 = MaxPooling1D(30)(l_cov2)
-# l_flat = Flatten()(l_pool2)
-# l_dense = Dense(128, activation='relu')(l_flat)
-# preds = Dense(2, activation='softmax')(l_dense)
-#
-# model = Model(sequence_input, preds)
-# model.compile(loss='categorical_crossentropy',
-#               optimizer='rmsprop',
-#               metrics=['acc'])
-#
-# print("model fitting - more complex convolutional neural network")
-# print(model.summary())
-# model.fit(x_train,
-#           y_train,
-#           validation_data=(x_val, y_val),
-#           nb_epoch=20, batch_size=50)
+    simpleCNN()
