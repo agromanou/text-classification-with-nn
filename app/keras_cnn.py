@@ -1,3 +1,7 @@
+import itertools as it
+from pprint import pprint
+
+import matplotlib.pyplot as plt
 import numpy as np
 from keras.layers import Conv1D, MaxPooling1D, Embedding, Merge
 from keras.layers import Dense, Input, Flatten
@@ -8,10 +12,6 @@ from keras.utils.np_utils import to_categorical
 
 from app.load_data import parse_reviews
 from app.word_embedding import GloveWordEmbedding
-
-import matplotlib.pyplot as plt
-import itertools as it
-from pprint import pprint
 
 
 def prepare_data_for_conv_networks(max_sequence_length=1000,
@@ -206,7 +206,9 @@ def betterCNN(max_sequence_length=1000,
               loss='categorical_crossentropy',
               optimizer='rmsprop',
               batch_size=64,
-              nb_epoch=10):
+              nb_epoch=10,
+              deep_activation='relu',
+              activation='softmax'):
     """
 
     :param max_sequence_length:
@@ -217,6 +219,8 @@ def betterCNN(max_sequence_length=1000,
     :param optimizer:
     :param batch_size:
     :param nb_epoch:
+    :param deep_activation:
+    :param activation:
     :return:
     """
 
@@ -254,13 +258,13 @@ def betterCNN(max_sequence_length=1000,
         convs.append(l_pool)
 
     l_merge = Merge(mode='concat', concat_axis=1)(convs)
-    l_cov1 = Conv1D(128, 5, activation='relu')(l_merge)
+    l_cov1 = Conv1D(128, 5, activation=deep_activation)(l_merge)
     l_pool1 = MaxPooling1D(5)(l_cov1)
-    l_cov2 = Conv1D(128, 5, activation='relu')(l_pool1)
+    l_cov2 = Conv1D(128, 5, activation=deep_activation)(l_pool1)
     l_pool2 = MaxPooling1D(30)(l_cov2)
     l_flat = Flatten()(l_pool2)
-    l_dense = Dense(128, activation='relu')(l_flat)
-    preds = Dense(2, activation='softmax')(l_dense)
+    l_dense = Dense(128, activation=deep_activation)(l_flat)
+    preds = Dense(2, activation=activation)(l_dense)
 
     model = Model(sequence_input, preds)
     model.compile(loss=loss, optimizer=optimizer, metrics=['acc'])
@@ -325,7 +329,7 @@ if __name__ == "__main__":
     results = dict()
     with open('results_cnn.txt', 'a') as f:
         for i in comb:
-            history = simpleCNN(max_sequence_length=i[0],
+            history = betterCNN(max_sequence_length=i[0],
                                 embedding_dim=i[1],
                                 loss=i[3],
                                 optimizer=i[2],
