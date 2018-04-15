@@ -6,7 +6,7 @@ import numpy as np
 from keras import layers
 from keras import models
 
-from app.model_agg import Model
+from app.model import Model
 from app.preprocessing import prepare_user_plus_vector_based_features
 
 
@@ -57,7 +57,9 @@ class SimpleMLP(Model):
 
         # In the first layer, we must specify the expected input data shape
         model.add(layers.Dense(64,
+                               kernel_initializer='glorot_normal',
                                activation=self.deep_activation,
+                               kernel_regularizer=self.kernel_regularizer,
                                input_shape=input_shape))
         if self.dropout:
             model.add(layers.Dropout(self.dropout))
@@ -65,10 +67,10 @@ class SimpleMLP(Model):
         # add hidden layers
         for n_neurons in self.layers[1:]:
             model.add(layers.Dense(n_neurons,
+                                   kernel_initializer='glorot_normal',
                                    activation=self.deep_activation,
                                    kernel_regularizer=self.kernel_regularizer))
             model.add(layers.BatchNormalization())
-
             model.add(layers.Activation(self.deep_activation))
 
             if self.dropout:
@@ -156,8 +158,8 @@ if __name__ == '__main__':
 
             print('-' * 30, 'END OF RUN', '-' * 30)
 
-            for i in range(0, len(history), 10):
-                f.write(str(i) + ', ' + str(history[i]) + '\n')
+            for n in range(0, len(history.history['val_acc']), 10):
+                f.write(str(n) + ', ' + str(history.history['val_acc'][n]) + '\n')
 
     pprint(average)
 

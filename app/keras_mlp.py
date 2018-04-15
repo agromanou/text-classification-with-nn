@@ -138,7 +138,6 @@ class SequentialMLP:
         self.activity_regularizer = None
 
         if activity_regularization_params:
-
             assert activity_regularization_params[0] in ['l1', 'l2']
             value = activity_regularization_params[1]
 
