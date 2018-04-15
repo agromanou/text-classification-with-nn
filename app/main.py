@@ -1,8 +1,5 @@
-import numpy as np
-
-from app.models.simple_mlp import SimpleMLP
 from app.preprocessing import prepare_user_plus_vector_based_features
-
+from app.simple_mlp_old import SimpleMLP
 
 if __name__ == '__main__':
     meta_dict = prepare_user_plus_vector_based_features()
