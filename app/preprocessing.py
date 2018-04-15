@@ -78,6 +78,7 @@ def prepare_user_plus_vector_based_features():
         'y_test_enc': y_test_enc
     }
 
+
 def prepare_embedding_based_features(emb_dim=100, emb_type='tfidf'):
     """
 

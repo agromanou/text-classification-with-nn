@@ -1,22 +1,18 @@
-from keras import models
-from keras import layers
 from keras import optimizers
 from keras import regularizers
-import numpy as np
+from matplotlib import pyplot as plt
+
+plt.style.use('ggplot')
 
 
 class Model:
     def __init__(self,
-                 x_train,
-                 y_train,
-                 x_test,
-                 y_test,
+                 loss,
                  optimizer,
                  learning_rate,
                  decay,
                  momentum,
                  kernel_regularization_params,
-                 activity_regularization_params,
                  epochs,
                  batch_size):
 
@@ -25,12 +21,7 @@ class Model:
         self.epochs = epochs
         self.batch_size = batch_size
 
-        self.x_train = x_train
-        self.y_train = y_train
-        self.x_test = x_test
-        self.y_test = y_test
-
-        # restrictions about the optimizers and the loss functions.
+        # restrictions about the optimizers
         self.optimizer = optimizer
         if self.optimizer == 'sgd':
             opt = optimizers.SGD(lr=learning_rate, decay=decay, momentum=momentum, nesterov=True)
@@ -56,6 +47,13 @@ class Model:
 
         self.optimizer = opt
 
+        assert loss in ['mean_squared_error', 'mean_absolute_error',
+                        'mean_squared_logarithmic_error', 'squared_hinge',
+                        'hinge', 'categorical_hinge', 'categorical_crossentropy',
+                        'binary_crossentropy', 'cosine_proximity']
+
+        self.loss = loss
+
         # restriction about reguralization
         if kernel_regularization_params:
             assert kernel_regularization_params[0] in ['l1', 'l2']
@@ -67,53 +65,66 @@ class Model:
             elif kernel_regularization_params[0] == 'l2':
                 self.kernel_regularizer = regularizers.l2(value)
 
-        if activity_regularization_params:
-            assert activity_regularization_params[0] in ['l1', 'l2']
-            value = activity_regularization_params[1]
-
-            if activity_regularization_params[0] == 'l1':
-                self.activity_regularizer = regularizers.l1(value)
-
-            elif activity_regularization_params[0] == 'l2':
-                self.activity_regularizer = regularizers.l2(value)
-
-                # print("Number of Training examples = {}".format(self.n_examples_x_train))
-                # print("Number of Test examples = {}".format(self.X_test.shape[0]))
-                # print("Number of Features: {}".format(self.n_x_features))
-                # print("Number of Classes: {}".format(self.n_y))
-                # print("X_train shape: {}".format(X_train.shape))
-                # print("Y_train shape: {}".format(Y_train.shape))
-                # print("X_test shape: {}".format(X_test.shape))
-                # print("Y_test shape: {}".format(Y_test.shape), end='\n\n')
-
-    def build_model(self):
+    def build_model(self, input_shape, labels_number):
         pass
 
-    def fit(self):
+    def fit(self, x_train, y_train):
         """
 
         :return:
         """
-        self.build_model()
+        input_shape = (x_train.shape[1],)
 
-        history = self.model.fit(x=self.x_train,
-                                 y=self.y_train,
+        self.build_model(input_shape=input_shape,
+                         labels_number=2)
+
+        print('PRINT {}, {}'.format(self.epochs, self.batch_size))
+        history = self.model.fit(x=x_train,
+                                 y=y_train,
                                  epochs=self.epochs,
                                  batch_size=self.batch_size,
                                  validation_split=0.2,
                                  verbose=2)
+
         return history
 
-    def predict(self):
+    def predict(self, x_test, y_test):
         """
 
         :return:
         """
-        test_score = self.model.evaluate(x=self.x_test,
-                                         y=self.y_test,
+        test_score = self.model.evaluate(x=x_test,
+                                         y=y_test,
                                          batch_size=self.batch_size,
                                          verbose=2)
 
         return test_score
 
+    @staticmethod
+    def plot_model_metadata(history):
+        """
+
+        :param history:
+        :return:
+        """
+        #  "Accuracy"
+        # plt.subplot(1, 2, 1)
+        plt.plot(history.history['acc'])
+        plt.plot(history.history['val_acc'])
+        plt.title('Model Accuracy')
+        plt.ylabel('accuracy')
+        plt.xlabel('epoch')
+        plt.ylim(ymax=1)
+        plt.legend(['train', 'validation'], loc='upper left')
+        plt.show()
+
+        # "Loss"
+        # plt.subplot(1, 2, 2)
+        plt.plot(history.history['loss'])
+        plt.plot(history.history['val_loss'])
+        plt.title('Model Loss')
+        plt.ylabel('loss')
+        plt.xlabel('epoch')
+        plt.legend(['train', 'validation'], loc='upper left')
+        plt.show()
 
