@@ -7,11 +7,11 @@ from keras import layers
 from keras import models
 
 from app.evaluation import create_clf_report
-from app.model import Model
+from app.model import ModelNN
 from app.preprocessing import prepare_user_plus_vector_based_features
 
 
-class SequentialMLP(Model):
+class SequentialMLP(ModelNN):
     def __init__(self,
                  layers_structure,
                  loss,
@@ -65,19 +65,19 @@ class SequentialMLP(Model):
         self.plot_model = plot_model
         self.load_model = load_model
 
-        Model.__init__(self,
-                       loss,
-                       optimizer,
-                       learning_rate,
-                       decay,
-                       momentum,
-                       kernel_regularization_params,
-                       epochs,
-                       batch_size,
-                       validation_size,
-                       outfile,
-                       plot_model,
-                       load_model)
+        ModelNN.__init__(self,
+                         loss,
+                         optimizer,
+                         learning_rate,
+                         decay,
+                         momentum,
+                         kernel_regularization_params,
+                         epochs,
+                         batch_size,
+                         validation_size,
+                         outfile,
+                         plot_model,
+                         load_model)
 
     def build_model(self, input_shape, labels_number):
         """

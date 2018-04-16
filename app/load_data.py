@@ -74,8 +74,9 @@ def parse_reviews(file_type='train',
 
     extracted_data = pd.DataFrame(data)
     extracted_data = extracted_data[extracted_data['polarity'] != 'neutral']
+
     if save_data:
-        print('Saving etracted reviews metadata from file: {}'.format(file_type))
+        print('Saving extracted reviews metadata from file: {}'.format(file_type))
         x = path.split('.')[-1]
         outfile = re.sub(x, 'csv', path)
         extracted_data.to_csv(outfile, encoding='utf-8', index=False)
@@ -105,6 +106,6 @@ def reviews_to_txt(data_type='train'):
 
 
 if __name__ == "__main__":
-    data = reviews_to_txt()
+    data = parse_reviews(file_type='test', load_data=False, save_data=True)
 
     print(data)
