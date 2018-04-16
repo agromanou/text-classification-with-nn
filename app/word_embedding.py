@@ -190,6 +190,7 @@ def create_FastTextEmbedding(data):
     model.compile(optimizer='adam', loss='binary_crossentropy')
     Image(model_to_dot(model, show_shapes=True).create(prog='dot', format='png'))
 
+
 if __name__ == '__main__':
     fte_obj = FastTextEmbedding(embedding_type='skipgram')
 

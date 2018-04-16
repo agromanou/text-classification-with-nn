@@ -3,8 +3,8 @@ import itertools as it
 from keras import layers
 from keras import models
 
-from app.preprocessing import prepare_user_plus_vector_based_features
 from app.model import ModelAgg
+from app.preprocessing import prepare_user_plus_vector_based_features
 
 
 class SimpleMLP(ModelAgg):

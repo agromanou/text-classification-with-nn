@@ -1,7 +1,6 @@
+from app.model_old import Model
 from keras import layers
 from keras import models
-
-from app.model_old import Model
 
 
 class SimpleRNN(Model):

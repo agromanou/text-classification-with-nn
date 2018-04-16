@@ -1,12 +1,11 @@
+from keras import layers
+from keras import models
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn.preprocessing import StandardScaler
 
 from app.features import *
 from app.load_data import parse_reviews
-
-from keras import models
-from keras import layers
 
 
 def prepare_user_plus_vector_based_features():

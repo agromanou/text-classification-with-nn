@@ -1,8 +1,9 @@
 import re
 import unicodedata
-import spacy
+
 import nltk
 import pandas as pd
+import spacy
 from bs4 import BeautifulSoup
 from nltk.tokenize.toktok import ToktokTokenizer
 from sklearn.base import BaseEstimator, TransformerMixin
@@ -243,7 +244,6 @@ class TextPreprocessor(BaseEstimator, TransformerMixin):
 
 
 if __name__ == "__main__":
-
     docs = ["<p>Héllo! Are you here? I just heard about <b>Python</b>!<br/>\r\n \n              It's an "
             "amazing language which can be used for Scripting, Web development,\r\n\r\n\n              Information "
             "Retrieval, Natural Language Processing, Machine Learning & Artificial Intelligence!\n\n              "
