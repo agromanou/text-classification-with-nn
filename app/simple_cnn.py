@@ -1,9 +1,10 @@
-from app.model_old import Model
 from keras import layers
 from keras import models
 
+from app.model import ModelNN
 
-class CNN(Model):
+
+class CNN(ModelNN):
     def __init__(self,
                  train_data,
                  train_labels,
