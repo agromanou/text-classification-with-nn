@@ -40,6 +40,7 @@ def parse_reviews(file_type='train',
     assert file_type in ['train', 'test']
 
     file = TRAIN_FILE if file_type == 'train' else TEST_FILE
+
     path = os.path.join(DATA_DIR, file)
 
     if load_data:
@@ -82,8 +83,28 @@ def parse_reviews(file_type='train',
     return extracted_data
 
 
-if __name__ == "__main__":
-    train_data = parse_reviews(load_data=False, save_data=False, file_type='train')
-    print(train_data.head())
+def reviews_to_txt(data_type='train'):
+    """
 
-    calculate_label_ratio(train_data['polarity'])
+    :param data_type:
+    :return:
+    """
+
+    outfile_path = os.path.join(DATA_DIR, "{}_text.txt".format(data_type))
+
+    # loading reviews df in a csv
+    reviews_df = parse_reviews(file_type=data_type, save_data=False, load_data=False)
+
+    # setting the outfile path that will give the training examples as text.
+
+    with open(outfile_path, 'w', encoding='utf8') as out:
+        for row in reviews_df['text']:
+            out.write(row + ' ')
+
+    return reviews_df
+
+
+if __name__ == "__main__":
+    data = reviews_to_txt()
+
+    print(data)

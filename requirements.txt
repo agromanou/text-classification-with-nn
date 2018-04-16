@@ -1,1 +1,12 @@
+scipy
+seaborn
+spacy
+matplotlib
+numpy
+keras
+fasttext
+tqdm
+pandas
+nltk
+scikit-learn
 
